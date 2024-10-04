@@ -9,18 +9,16 @@ Group 3
 3. Brian Nguyen
 4. Anil Parthasarathi
 
-## 2. Project topic (e.g., parallel sorting algorithms)
+## 2. Project topic
 Parallel sorting algorithms
 
-### 2a. Brief project description (what algorithms will you be comparing and on what architectures)
-
+### 2a. Brief project description
 - Bitonic Sort: Andrew
 - Sample Sort: Brian
 - Merge Sort: Anil
 - Radix Sort: Gage
 
 ### 2b. Pseudocode for each parallel algorithm
-- For MPI programs, include MPI calls you will use to coordinate between processes
 - Bitonic Sort:
 - Sample Sort:
 ```
@@ -86,11 +84,51 @@ function parallelMergeSort(list):
 
 - Radix Sort:
 
+```
+function radix_sort():
+    // Partition Data
+    Read from command line: input_size, input_type
+    Get number of processes and rank
+    Generate partition of data
+    if input_type is perturbed:
+        exchange elements with other processes
+
+    // Calculation
+    Find local_maximum (most digits) element
+    Synchronize to global_maximum
+
+    for digit in global_maximum: // From least to most significant
+        
+        // Counting Sort
+        buckets = [0]*10
+        for elem in partition:
+            increment bucket indexed by current elem digit
+
+        Collect information on counts across all processes (global count) and store in buckets
+
+        Perform prefix-sum on buckets. 
+
+        // Repartition
+        Send elements to appropriate position and process according to buckets while maintaining stability  
+        Receive elements and store in partition, moving current elements as necessary
+
+    // Check
+    Iterate through partition and check order
+
+    if rank != highest:
+        Send maximum value in partition to next rank process (unless highest rank)
+
+    if rank != lowest:
+        Receive maximum value from previous rank process (unless lowest rank)
+        Check if local minimum is greater than or equal to received value
+
+```
+
 ### 2c. Evaluation plan - what and how will you measure and compare
-- Input sizes, Input types
-- Strong scaling (same problem size, increase number of processors/nodes)
-- Weak scaling (increase problem size, increase number of processors)
-- Varying input sizes (powers of 2) and varying numbers of processors
+- Varying input sizes and varying numbers of processors (powers of 2)
+    - Input Sizes: 2^16, 2^18, 2^20, 2^22, 2^24, 2^26, 2^28
+    - Num Procs: 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024
+- Input Types: Sorted, Random, Reverse sorted, 1% perturbed
 
 ### 3. Communication
 Discord will be used as the primary means of meeting and communicating with everyone.
