@@ -23,6 +23,34 @@ Parallel sorting algorithms
 - For MPI programs, include MPI calls you will use to coordinate between processes
 - Bitonic Sort:
 - Sample Sort:
+```
+Quicksort(data):
+- recursive implementation
+- each iteration, choose a pivot point
+- split data into two groups based on if given data is less than or greater than/equal to pivot
+- recursively call quicksort on respective halfs of the data
+- base case: if data size is less than or equal to 1, simply return data
+- once recursive calls finish, combine data as follows: left + pivot + right
+- and return data
+
+Main():
+- from command line args take in the number of processors, splitters, and samples
+- from the master processor, evenly distribute data to each worker processor
+- in the worker processor, receive the data from the master processor
+- in the worker processor, sort the received data using quicksort
+- in the worker processor, draw s samples from the sorted data
+- in the worker processor, send selected samples to the master processor
+- in the master processor, receive selected samples from all worker processors
+- in the master processor, sort received samples using quicksort and choose m splitters
+- in the master processor, send the respective bucket ranges to each worker processor
+- in the worker processor, receive the bucket ranges and sort data into respective buckets
+- once sorted by bucket, send the respective bucket's data to it's given worker processor
+- once each worker processor receives the data for the respective bucket they manage,
+use quicksort one last time to sort the bucket's data.
+- each worker should then send the respective bucket's sorted data to the master processor
+- and the master processor should receive and combine the values of the buckets to 
+construct the fully sorted input.
+```
 - Merge Sort:
 
 ```
