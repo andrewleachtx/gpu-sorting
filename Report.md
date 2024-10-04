@@ -28,7 +28,6 @@ Parallel sorting algorithms
 ```
 
 global variable threadCount
-
 global variable maxThreads
 
 function merge (list1, list2):
@@ -63,6 +62,7 @@ function parallelMergeSort(list):
 - Input sizes, Input types
 - Strong scaling (same problem size, increase number of processors/nodes)
 - Weak scaling (increase problem size, increase number of processors)
+- Varying input sizes (powers of 2) and varying numbers of processors
 
 ### 3. Communication
 Discord will be used as the primary means of meeting and communicating with everyone.
