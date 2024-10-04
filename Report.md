@@ -33,7 +33,7 @@ global variable maxThreads
 
 function merge (list1, list2):
 - loop through the lists and create a merged list in sorted order
--  - This will involve keeping an index for list1 and list2 and comparing the items at those indexes, adding the item less than or equal to the other to the new list
+- - This will involve keeping an index for list1 and list2 and comparing the items at those indexes, adding the item less than or equal to the other to the new list
 - - The list that has its item added will get its index incremented
 - - This goes on until all items from both lists get added
 - - O(n + m) time total
