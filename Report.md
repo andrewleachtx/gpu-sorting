@@ -48,7 +48,7 @@ function parallelMergeSort(list):
 - - Create a thread for the first half of the list and call parallelMergeSort() within that thread
 - - increment threadCount by 1 (make sure to secure a lock before modifying the global variable)
 - - Call parallelMergeSort() on the second half of the list
-- - Synch the threads with join
+- - Synch threads (wait until "master" has the results from both halves of the list)
 - - Decrement threadCount to potentially allow a new thread to be made (make sure to secure a lock before modifying the global variable)
 - Else:
 - - call parallelMergeSort() on the first half of the list
