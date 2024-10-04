@@ -25,6 +25,8 @@ Parallel sorting algorithms
 - Sample Sort:
 - Merge Sort:
 
+```
+
 global variable threadCount
 
 global variable maxThreads
@@ -52,6 +54,8 @@ function parallelMergeSort(list):
 - - call parallelMergeSort() on the first half of the list
 - - call parallelMergeSort() on the second half of the list
 - Call merge using the two halves of the lists which will return the sorted list
+
+```
 
 - Radix Sort:
 
