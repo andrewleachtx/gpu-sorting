@@ -1,0 +1,15 @@
+
+Inactive Modules:
+  1) UCX/1.9.0     2) numactl/2.0.13
+
+Due to MODULEPATH changes, the following have been reloaded:
+  1) binutils/2.35     2) zlib/1.2.11
+
+The following have been reloaded with a version change:
+  1) GCCcore/10.2.0 => GCCcore/8.3.0
+
+Initial (Unsorted) Array: [ 453 459 293 0 292 16 784 117 800 805 667 615 199 323 319 635 492 608 612 700 140 826 568 860 144 428 490 987 772 465 982 577  ]
+Sort successful
+Final Array: [ 0 16 117 140 144 199 292 293 319 323 428 453 459 465 490 492 568 577 608 612 615 635 667 700 772 784 800 805 826 860 982 987  ]
+JOBID        NAME                 USER                     PARTITION              NODES  CPUS  STATE        TIME         TIME_LEFT    START_TIME        REASON                   NODELIST
+11679159     bitonic_16_32        andrewleachtx            short                  1      16    RUNNING      0:07         9:53         2024-10-10T20:07  None                     c441

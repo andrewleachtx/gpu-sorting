@@ -20,7 +20,7 @@ replace_hash="HASH"
 
 # Uncomment these ones to test
 array_sizes=(32)
-num_processes=(32)
+num_processes=(16)
 # array_sizes=(65536 262144 1048576 4194304 16777216 67108864 268435456)
 # num_processes=(2 4 8 16 32 64 128 256 512 1024)
 

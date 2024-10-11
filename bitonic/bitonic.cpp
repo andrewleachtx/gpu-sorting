@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include <random>
+#include <algorithm>
 
 #include "mpi.h"
 #include <caliper/cali.h>
@@ -21,17 +22,6 @@ static void printvec(const vector<T>& A) {
         cout << v << " ";
     }
     cout << " ]" << endl;
-}
-
-static bool needsSwap(int v1, int v2, int dir) {
-    if (dir == DECREASING && v1 < v2) {
-        return true;
-    }
-    if (dir == INCREASING && v1 > v2) {
-        return true;
-    }
-
-    return false;
 }
 
 int main(int argc, char** argv) {
@@ -54,8 +44,9 @@ int main(int argc, char** argv) {
 
     n_workers = n_procs - 1;
 
-    // Each process will get a value, master included
-    int local_val;
+    // Each program receives an n / n_procs work (assuming valid input)
+    int n_local = n / n_procs;
+    vector<int> A_local(n_local);
     
     // Create caliper ConfigManager object https://software.llnl.gov/Caliper/ConfigManagerAPI.html
     cali::ConfigManager mgr;
@@ -63,8 +54,9 @@ int main(int argc, char** argv) {
     if (mgr.error()) {
         std::cerr << "Cali ConfigManager error: " << mgr.error_msg() << std::endl;
     }
-
+    
     // The master task should do checks and MPI_Send each worker a value (workers will ofc Recv in that case)
+    vector<int> A;
     if (rank == MASTER) {
         // n > 1
         if (n <= 0) {
@@ -82,53 +74,36 @@ int main(int argc, char** argv) {
             exit(0);
         }
 
-        // Assume n = n_procs, for now FIXME: is it okay to use a local sort in the case of n_procs <= n?
-        if (n != n_procs) {
-            cerr << "Number of elements must be equal to number of processes" << endl;
-            MPI_Abort(MPI_COMM_WORLD, 1);
-            exit(0);
-        }
-
         CALI_MARK_BEGIN("data_init_runtime");
-        // Initialize and populate arr[n]
-        vector<int> A(n);
+        // Initialize and populate arr[]
+        A.resize(n);
         for (int& v : A) {
-            v = rand();
+            v = rand() % 1000;
         }
         CALI_MARK_END("data_init_runtime");
 
         printf("Initial (Unsorted) Array: ");
         printvec(A);
-
-        // Send the array elements to all processes, master keeps 0
-        // Although this is a loop of "small" communications, it is better suited to describe it as a "large" communication
-        local_val = A[0];
-        CALI_MARK_BEGIN("comm");
-        CALI_MARK_BEGIN("comm_large");
-        for (int i = 1; i < n; i++) {
-            // int MPI_Send(const void *buf, int count, MPI_Datatype datatype, int dest, int tag, MPI_Comm comm)
-            int rc = MPI_Send(&A[i], 1, MPI_INT, i, 0, MPI_COMM_WORLD);
-
-            if (rc != MPI_SUCCESS) {
-                cerr << "Initial master MPI_Send of values failed @ line " << __LINE__ << " with rc " << rc << endl;
-                MPI_Abort(MPI_COMM_WORLD, 1);
-            }
-        }
-        CALI_MARK_END("comm_large");
-        CALI_MARK_END("comm");
     }
-    else {
-        // int MPI_Recv(void *buf, int count, MPI_Datatype datatype, int source, int tag, MPI_Comm comm, MPI_Status *status)
-        CALI_MARK_BEGIN("comm");
-        CALI_MARK_BEGIN("comm_small");
-        MPI_Recv(&local_val, 1, MPI_INT, MASTER, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        CALI_MARK_END("comm_small");
-        CALI_MARK_END("comm");
-    }
-
-    // Main algorithm TODO: Move this to a function
-    int n_stages = int(log2(n_procs));
     
+    // Much more efficient to use MPI_Scatter as opposed to a for loop - only weird part is now only the master has a sendbuf
+    int* sendbuf = nullptr;
+    if (rank == MASTER) {
+        sendbuf = &A[0];
+    }
+
+    CALI_MARK_BEGIN("comm");
+    CALI_MARK_BEGIN("comm_large");
+    // int MPI_Scatter(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
+    MPI_Scatter(sendbuf, n_local, MPI_INT, &A_local[0], n_local, MPI_INT, MASTER, MPI_COMM_WORLD);
+    CALI_MARK_END("comm_large");
+    CALI_MARK_END("comm");
+
+    // Now, we should use some series sort for each buffer
+    sort(A_local.begin(), A_local.end());
+
+    int n_stages = int(log2(n_procs));
+
     for (int stage = 0; stage < n_stages; stage++) {
         for (int stride = 0; stride < stage + 1; stride++) {
             // These are small computations
@@ -137,63 +112,88 @@ int main(int argc, char** argv) {
             int stride_sz = 1 << (stage - stride);
             int partner_rank = rank ^ stride_sz;
 
-            int half = rank / (1 << (stage + 1));
             int dir = INCREASING;
+            // Depending on what partition or "half" you are in, you will be decreasing or increasing
+            int half = rank / (1 << (stage + 1));
             if ((half % 2) == 1) {
                 dir = DECREASING;
             }
 
-            // TODO: Probably refactor to use MPI_Sendrecv
-            if (rank < partner_rank) {
-                CALI_MARK_END("comp_small");
-                CALI_MARK_END("comp");
+            vector<int> A_partner(n_local);
+            CALI_MARK_END("comp_small");
+            CALI_MARK_END("comp");
 
-                CALI_MARK_BEGIN("comm");
-                CALI_MARK_BEGIN("comm_small");
-                int val_buf = -1;
-                MPI_Recv(&val_buf, 1, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                CALI_MARK_END("comm_small");
-                CALI_MARK_END("comm");
-                
-                CALI_MARK_BEGIN("comp");
-                CALI_MARK_BEGIN("comp_small");
-                if (needsSwap(local_val, val_buf, dir)) {
-                    CALI_MARK_END("comp_small");
-                    CALI_MARK_END("comp");
+            CALI_MARK_BEGIN("comm");
+            CALI_MARK_BEGIN("comm_large");
+            // int MPI_Sendrecv(const void *sendbuf, int sendcount, MPI_Datatype sendtype, int dest, int sendtag, void *recvbuf, int recvcount, MPI_Datatype recvtype, int source, int recvtag, MPI_Comm comm, MPI_Status *status)
+            MPI_Sendrecv(&A_local[0], n_local, MPI_INT, partner_rank, 0,
+                         &A_partner[0], n_local,  MPI_INT, partner_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            CALI_MARK_END("comm_large");
+            CALI_MARK_END("comm");
 
-                    CALI_MARK_BEGIN("comm");
-                    CALI_MARK_BEGIN("comm_small");
-                    MPI_Send(&local_val, 1, MPI_INT, partner_rank, 0, MPI_COMM_WORLD);
-                    local_val = val_buf;
-                    CALI_MARK_END("comm_small");
-                    CALI_MARK_END("comm");
+            /*
+                At this point, we have our buffer in A_local[] and the partner's in A_partner[]. The question is, if we had 8 elements total,
+                so four in A_local[] and 4 in A_partner[], how do we make it so both processes have the correct elements?
+
+                What does correct mean? Well at each step we must verify that the buffer size has a bitonic ordering; thinking of the subarray
+                buffer that A_local[] has as ONE UNIT, if we say it is fully INCREASING, then A_partner[] must be fully DECREASING.
+
+                This way when any two processes later receive them, they have the correct bitonic ordering to work with.
+
+                This is what the bitonic "merge" step looks like - if we have a fully sorted resultant array, we can easily redefine one
+                partition as "increasing" and the other as "decreasing".
+
+                The confusing part are these two cases:
+                    1. If we are "INCREASING"
+                        - The lesser rank should start with the first half of the partition
+                        - Then of course the greater receives the second half
+                    2. If we are "DECREASING"
+                        - The lesser rank gets the second half
+                        - The upper gets the first.
+
+                It is confusing because it has nothing to do with inc or decreasing
+            */
+
+            // To merge, we can use two pointer approach that simply decides which value to pull from each time. Edit: I'm too lazy, use std::merge
+            CALI_MARK_BEGIN("comp");
+            CALI_MARK_BEGIN("comp_large");
+            vector<int> merged(n_local * 2);
+            merge(A_local.begin(), A_local.end(), A_partner.begin(), A_partner.end(), merged.begin());
+
+            // TODO: There is a way to do this more concisely, but MVP
+            int lesser_rank = min(rank, partner_rank);
+            int higher_rank = max(rank, partner_rank);
+            if (dir == INCREASING) {
+                // Lesser rank gets the first half
+                if (rank == lesser_rank) {
+                    for (int i = 0; i < n_local; i++) {
+                        A_local[i] = merged[i];
+                    }
                 }
-                else {
-                    CALI_MARK_END("comp_small");
-                    CALI_MARK_END("comp");
 
-                    CALI_MARK_BEGIN("comm");
-                    CALI_MARK_BEGIN("comm_small");
-                    MPI_Send(&val_buf, 1, MPI_INT, partner_rank, 0, MPI_COMM_WORLD);
-                    CALI_MARK_END("comm_small");
-                    CALI_MARK_END("comm");
+                // Higher gets second half
+                if (rank == higher_rank) {
+                    for (int i = 0; i < n_local; i++) {
+                        A_local[i] = merged[i + n_local];
+                    }
                 }
             }
             else {
-                CALI_MARK_END("comp_small");
-                CALI_MARK_END("comp");
+                if (rank == higher_rank) {
+                    for (int i = 0; i < n_local; i++) {
+                        A_local[i] = merged[i];
+                    }
+                }
 
-                CALI_MARK_BEGIN("comm");
-                CALI_MARK_BEGIN("comm_small");
-                MPI_Send(&local_val, 1, MPI_INT, partner_rank, 0, MPI_COMM_WORLD);
-
-                int val_buf;
-                MPI_Recv(&val_buf, 1, MPI_INT, partner_rank, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                CALI_MARK_END("comm_small");
-                CALI_MARK_END("comm");
-
-                local_val = val_buf;
+                if (rank == lesser_rank) {
+                    for (int i = 0; i < n_local; i++) {
+                        A_local[i] = merged[i + n_local];
+                    }
+                }
             }
+
+            CALI_MARK_END("comp_large");
+            CALI_MARK_END("comp");
 
             // We must wait for every process to finish at a given stride or vertical level
             CALI_MARK_BEGIN("comm");
@@ -203,28 +203,26 @@ int main(int argc, char** argv) {
     }
 
     // Make buffer known to each process, but only allocate space in master
+    CALI_MARK_BEGIN("comp");
+    CALI_MARK_BEGIN("comp_large");
     vector<int> A_sorted;
+    int* recvbuf = nullptr;
     if (rank == MASTER) {
         // Memory allocation is probably a "small" operation but it happens for the "large" amount of data (malloc(n * sizeof(int))) in this case
-        CALI_MARK_BEGIN("comp");
-        CALI_MARK_BEGIN("comp_large");
         A_sorted.resize(n);
-        CALI_MARK_END("comp_large");
-        CALI_MARK_END("comp");
+        recvbuf = &A_sorted[0];
     }
+    CALI_MARK_END("comp_large");
+    CALI_MARK_END("comp");
 
     // https://mpitutorial.com/tutorials/mpi-scatter-gather-and-allgather/
     // int MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype, void *recvbuf, int recvcount, MPI_Datatype recvtype, int root, MPI_Comm comm)
+    // We should send our buffer + n_local all to the A_sorted in the master process; a little weird but MPI_Gather knows
     CALI_MARK_BEGIN("comm");
     CALI_MARK_BEGIN("comm_large");
-    int rc = MPI_Gather(&local_val, 1, MPI_INT, &A_sorted[0], 1, MPI_INT, MASTER, MPI_COMM_WORLD);
+    MPI_Gather(&A_local[0], n_local, MPI_INT, recvbuf, n_local, MPI_INT, MASTER, MPI_COMM_WORLD);
     CALI_MARK_END("comm_large");
     CALI_MARK_END("comm");
-
-    if (rc != MPI_SUCCESS) {
-        cerr << "MPI_Gather failed @ line " << __LINE__ << " with rc " << rc << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
-    }
 
     // Verification stage, assumes desired output is increasing
     if (rank == MASTER) {
@@ -239,8 +237,9 @@ int main(int argc, char** argv) {
         }
         CALI_MARK_END("correctness_check");
 
-        if (idx != (n - 1)) {
+        if (idx != n) {
             printf("Sort failed @ idx [%d, %d]\n", idx, idx + 1);
+            printf("Sort failed, @ idx [%d, %d] with [%d, %d]\n", idx, idx + 1, A_sorted[idx], A_sorted[idx + 1]);
         }
         else {
             printf("Sort successful\n");
