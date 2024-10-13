@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
 
         }
 
-        // TODO aggregate bucket data
+        // Aggregate bucket data
         global_buckets.assign(10 * n_procs, 0);
         MPI_Allgather(local_buckets.data(), 10, MPI_INT, global_buckets.data(), 10, MPI_INT, MPI_COMM_WORLD);
 
@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
 
         }
 
-        // TODO repartition across processes
+        // Repartition across processes
         temp.assign(n_per_proc, 0);
         buffer.assign(2, 0);
         for (k = arr.cend() - 1; k >= arr.cbegin(); --k) {
@@ -187,6 +187,32 @@ int main(int argc, char *argv[]) {
         slice *= 10;
         arr = move(temp);
     }
+ 
+    MPI_Barrier(MPI_COMM_WORLD);
+    // Check sort
+    int check;
+    for (i = 1; i < n_per_proc; ++i) {
+        if (arr.at(i) < arr.at(i - 1)) {
+            cerr << "Sort failed" << endl;
+            MPI_Abort(MPI_COMM_WORLD, rc);
+            exit(1);     
+        }
+    }
+
+    // Interprocess check
+    if (rank != n_procs - 1) {
+        MPI_Send(&arr.at(n_per_proc - 1), 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
+    }
+    if (rank != 0) {
+        MPI_Recv(&check, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        if (arr.at(0) < check) {
+            cerr << rank << "Sort failed" << endl;
+            MPI_Abort(MPI_COMM_WORLD, rc);
+            exit(1);     
+        }
+    }
+
+    cout << rank << ' ' << " sorted and exited successfully!" << endl;
 
    // Create caliper ConfigManager object
 //    cali::ConfigManager mgr;
