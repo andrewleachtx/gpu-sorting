@@ -15,21 +15,22 @@
 using namespace std;
 
 int main(int argc, char** argv) {
-  if(argc != 4) {
+  if(argc != 3) {
     cout << "Usage: incorrect number of arguments" << endl;
-    cout << "Please provide as follows: <number of workers> <input size> <oversampling factor>" << endl;
+    cout << "Please provide as follows: <number of processors> <input size> <oversampling factor>" << endl;
     exit(1);
   }
 
-  int num_workers = atoi(argv[1]) - 1;
-  int input_size = atoi(argv[2]);
-  int oversampling_factor = atoi(argv[3]);
-
   MPI_Init(&argc, &argv);
 
-  int rank, n_procs, n_workers;
+  int rank, n_procs;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
+
+  int num_workers = n_procs - 1;
+  int input_size = atoi(argv[1]);
+  int oversampling_factor = atoi(argv[2]);
+  vector<int> result;
 
   //send bucket boundaries to worker processes
   if(rank == MASTER) {
@@ -49,12 +50,6 @@ int main(int argc, char** argv) {
     //sort sampled values
     sort(sample.begin(), sample.end());
 
-    cout << "Sample size: " << sample.size() << endl;
-    for(int i = 0; i < sample.size(); i++) {
-      cout << sample[i] << ", ";
-    }
-    cout << endl;
-
     //create buckets
     vector<int> pivots;
     int step_size = sample.size() / num_workers;
@@ -63,21 +58,28 @@ int main(int argc, char** argv) {
     }
     pivots.push_back(sample[sample.size() - 1]);
 
-    MPI_Bcast(&(pivots[0]), pivots.size(), MPI_INT, 0, MPI_COMM_WORLD);
+    cout << "Pivot Size: " << pivots.size() << endl;
+    for(int i = 1; i <= num_workers; i++) {
+      MPI_Send(&(pivots[0]), pivots.size(), MPI_INT, i, 0, MPI_COMM_WORLD);
+    }
 
     //send workloads to each processor
+    if(input_size % num_workers != 0) {
+      cout << "Usage Error: Work is able to be evenly divided amongst workers" << endl;
+      MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
     int workload_size = input_size / num_workers;
     for(int i = 0; i < num_workers; i++) {
-      MPI_Send(input[i * workload_size], workload_size, MPI_INT, i + 1, 0, MPI_COMM_WORLD);
+      MPI_Send(&(input[i * workload_size]), workload_size, MPI_INT, i + 1, 0, MPI_COMM_WORLD);
     }
 
     //receive bucket data from each processor
-    vector<int> result;
     for(int i = 1; i <= num_workers; i++) {
       int data_size;
-      MPI_Recv(&data_size, 1, MPI_INT, i, i, MPI_COMM_WORLD);
+      MPI_Recv(&data_size, 1, MPI_INT, i, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       int* buf = new int[data_size];
-      MPI_Recv(buf, data_size, MPI_INT, i, i, MPI_COMM_WORLD);
+      MPI_Recv(buf, data_size, MPI_INT, i, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
       for(int j = 0; j < data_size; j++) {
         result.push_back(buf[j]);
       }
@@ -87,12 +89,12 @@ int main(int argc, char** argv) {
     //worker processor
     //receive bucket boundaries
     int* pivots = new int[oversampling_factor];
-    MPI_Recv(pivots, oversampling_factor, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    MPI_Recv(pivots, oversampling_factor, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
     
     //receive workload
     int workload_size = input_size / num_workers;
     int* workload = new int[workload_size];
-    MPI_Recv(workload, workload_size, MPI_INT, 0, 0, MPI_COMM_WORLD);
+    MPI_Recv(workload, workload_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     //sort data into buckets
     vector<vector<int>> buckets(num_workers, vector<int>());
@@ -121,7 +123,7 @@ int main(int argc, char** argv) {
       }
       int bucket_size = buckets[i].size();
       MPI_Send(&bucket_size, 1, MPI_INT, i + 1, rank, MPI_COMM_WORLD);
-      MPI_Send(buckets[i][0], buckets[i].size(), MPI_INT, i + 1, rank, MPI_COMM_WORLD);
+      MPI_Send(&(buckets[i][0]), buckets[i].size(), MPI_INT, i + 1, rank, MPI_COMM_WORLD);
     }
 
     //receive data for our bucket
@@ -130,10 +132,10 @@ int main(int argc, char** argv) {
         continue;
       }
       int data_size;
-      MPI_Recv(&data_size, 1, MPI_INT, i, i, MPI_COMM_WORLD);
+      MPI_Recv(&data_size, 1, MPI_INT, i, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
       int* buf = new int[data_size];
-      MPI_Recv(buf, data_size, MPI_INT, i, i, MPI_COMM_WORLD);
+      MPI_Recv(buf, data_size, MPI_INT, i, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
       //store received data
       for(int j = 0; j < data_size; j++) {
@@ -148,9 +150,20 @@ int main(int argc, char** argv) {
     //send bucket data back to master processor
     int bucket_size = buckets[rank - 1].size();
     MPI_Send(&bucket_size, 1, MPI_INT, 0, rank, MPI_COMM_WORLD);
-    MPI_Send(buckets[rank - 1][0], bucket_size, MPI_INT, 0, rank, MPI_COMM_WORLD);
-    
+    MPI_Send(&(buckets[rank - 1][0]), bucket_size, MPI_INT, 0, rank, MPI_COMM_WORLD);
 
   }
+
+  // Can print to test
+  if (rank == MASTER) {
+      printf("Final, sorted array: [ ");
+      for (const int& v : result) {
+          printf("%d ", v);
+      }
+      printf(" ]\n");
+  }
+
+  MPI_Finalize();
+  return 0;
 
 }
