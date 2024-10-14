@@ -14,8 +14,8 @@ using namespace std;
 int MASTER = 0;
 
 template<typename T>
-static void printvec(const vector<T>& A) {
-    cout << "[ ";
+static void printvec(const vector<T>& A, int rank) {
+    cout << rank << ": [ ";
     for (const T& v : A) {
         cout << v << " ";
     }
@@ -105,6 +105,8 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
 
     n_workers = n_procs - 1;
+    
+    int workSize = n / n_procs;
 
     int local_val;
     
@@ -132,54 +134,56 @@ int main(int argc, char** argv) {
             MPI_Abort(MPI_COMM_WORLD, 1);
             exit(0);
         }
-        
-        //fill in the data
 
-        CALI_MARK_BEGIN("data_init_runtime");
-        // Initialize and populate arr[]
-        A.resize(n);
-        
-        //SORTED
-        if (inputType == 0){
-            for (int i = 0; i < n; i++) {
-                A[i] = i;
-            }
-        }
-        //RANDOM
-        else if (inputType == 1){
-            for (int& v : A) {
-                v = rand() % 1000;
-            }
-        }
-        //REVERSE
-        else if (inputType == 2){
-            for (int i = 0; i < n; i++) {
-                A[i] = n - i;
-            }
-        }
-        //PERTURBED
-        else if (inputType == 3){
-            for (int& v : A) {
-                v = rand() % 1000;
-                
-                v = int(float(v) * 1.01);
-            }
-        }
-        
-        CALI_MARK_END("data_init_runtime");
-
-        //printf("Initial (Unsorted) Array: ");
-        //printvec(A);
     }
     
+    //fill in the data
+
+    CALI_MARK_BEGIN("data_init_runtime");
+    // Initialize and populate arr[]
+    //A.resize(n);
+    
+    vector<int> workload(workSize);
+        
+    //SORTED
+    if (inputType == 0){
+        for (int i = 0; i < workSize; i++) {
+             workload[i] = i + (rank * workSize);
+        }
+    }
+    //RANDOM
+    else if (inputType == 1){
+        for (int& v : workload) {
+             v = rand() % (n / 4);
+        }
+    }
+    //REVERSE
+    else if (inputType == 2){
+         for (int i = 0; i < workSize; i++) {
+             workload[i] = (workSize - 1 - i) + ((n_procs - rank - 1) * workSize);
+         }
+    }
+    //PERTURBED
+    else if (inputType == 3){
+         for (int& v : workload) {
+             v = rand() % (n / 4);
+                
+             v = int(float(v) * 1.01);
+         }
+    }
+    
+    //printvec(workload, rank);
+        
+    CALI_MARK_END("data_init_runtime");
+    
     //use MPI scatter to send each process its workload
+    
+    /*
     
     int* fullBuf = nullptr;
     if (rank == MASTER) {
         fullBuf = &A[0];
     }
-    
-    int workSize = n / n_procs;
     
     vector<int> workload(workSize);
     
@@ -190,6 +194,8 @@ int main(int argc, char** argv) {
     
     CALI_MARK_END("comm_large");
     CALI_MARK_END("comm");
+    
+    */
     
     CALI_MARK_BEGIN("comp");
     CALI_MARK_BEGIN("comp_large");
@@ -302,8 +308,10 @@ int main(int argc, char** argv) {
         else{
             printf("Sort failed\n");
         }
+        
+        cout << "last index: " << A_sorted[n - 1] << endl;
 
-        printvec(A_sorted);
+        //printvec(A_sorted, rank);
     }
     
     if (rank == MASTER) {
