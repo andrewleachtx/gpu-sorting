@@ -4,8 +4,9 @@
 #include <random>
 #include <cmath>
 #include <ctime>
-// #include <caliper/cali.h>
-// #include <caliper/cali-manager.h>
+#include <caliper/cali.h>
+#include <caliper/cali-manager.h>
+#include <adiak.hpp>
 
 using namespace std;
 
@@ -15,21 +16,53 @@ using namespace std;
 #define PERTURBED 3
 
 int main(int argc, char *argv[]) {
-    // CALI_CXX_MARK_FUNCTION;
+    CALI_CXX_MARK_FUNCTION;
     MPI_Init(&argc,&argv);
     
-    // TODO initialize all iteration variables
-    int rc;
+    int rc,
+        rank, 
+        n_procs,
+        n_elems,
+        input_type,
+        n_per_proc,
+        bound,
+        local_length,
+        global_length,
+        slice,
+        index,
+        check,
+        i,
+        j,
+        buffer,
+        threshold;
+    size_t l;
+    vector<int>::const_iterator k;
+    vector<int> arr,
+                local_buckets,
+                global_buckets,
+                left_sum,
+                global_sum,
+                global_prefix,
+                temp,
+                send_buffer,
+                recv_buffer;
+    const char *data_init_X = "data_init_X",
+               *comm = "comm",
+               *comm_small = "comm_small",
+               *comm_large = "comm_large",
+               *comp = "comp",
+               *comp_small = "comp_small",
+               *comp_large = "comp_large",
+               *correctness_check = "correctness_check";
 
     // Check all inputs present
-    if (argc != 3) { // TODO check
+    if (argc != 3) {
         cerr << "Usage: sbatch radix.grace_job <# processes> <# elements> <type of input>" << endl;
         MPI_Abort(MPI_COMM_WORLD, rc);
         exit(1);
     }
 
     // Get and check rank
-    int rank, n_procs;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
     if ((n_procs & (n_procs - 1)) != 0) {
@@ -39,7 +72,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Get and check array size
-    int n_elems = stoi(argv[1]);
+    n_elems = stoi(argv[1]);
     if (n_elems == 0 || (n_elems & (n_elems - 1)) != 0) {
         cerr << "Number of elements must be a power of two and greater than 0" << endl;
         MPI_Abort(MPI_COMM_WORLD, rc);
@@ -47,21 +80,21 @@ int main(int argc, char *argv[]) {
     }
 
     // Get and check input type
-    int input_type = stoi(argv[2]);
+    input_type = stoi(argv[2]);
     if (input_type < 0 || input_type >= 4) {
         cerr << "Number of elements must be a power of two and greater than 0" << endl;
         MPI_Abort(MPI_COMM_WORLD, rc);
         exit(1);     
     }
 
-    // Generate array
-    int i;
-    int j;
-    vector<int>::const_iterator k;
-    int bound;
+    // Create caliper ConfigManager object
+    cali::ConfigManager mgr;
+    mgr.start();
 
-    int n_per_proc = n_elems / n_procs;
-    vector<int> arr(n_per_proc);
+    // Generate array
+    CALI_MARK_BEGIN(data_init_X);
+    n_per_proc = n_elems / n_procs;
+    arr.assign(n_per_proc, 0);
     if (input_type == SORTED || input_type == PERTURBED) {
         j = rank * n_per_proc;
         for (i = 0; i < n_per_proc; ++i) {
@@ -70,14 +103,13 @@ int main(int argc, char *argv[]) {
 
         }
         if (input_type == PERTURBED) {
-            srand(0); // TODO seed with dynamic value
-            int threshold = RAND_MAX * 0.50;
+            srand(time(NULL) * (rank + n_procs)); 
+            threshold = RAND_MAX * 0.01;
             for (i = 0; i < n_per_proc - 1; ++i) {
                 if (rand() <= threshold) {
                     swap(arr.at(i), arr.at(i + 1));
                 }
             }
-            int buffer;
             if (rank != n_procs - 1) { // Swap forward
                 buffer = rand() <= threshold ? arr.at(n_per_proc - 1) : -1;
                 MPI_Send(&buffer, 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
@@ -101,8 +133,8 @@ int main(int argc, char *argv[]) {
         }
     }
     else if (input_type == RANDOM) {
-        srand(0); // TODO seed with dynamic value
         for (i = 0; i < n_per_proc; ++i) {
+            srand(time(NULL) * (rank + n_procs)); 
             arr.at(i) = rand() % 1000;
 
         }
@@ -114,49 +146,61 @@ int main(int argc, char *argv[]) {
             --j;
         }
     }
+    CALI_MARK_END(data_init_X);
 
     // Get local max length
-    int local_length = -1;
+    CALI_MARK_BEGIN(comp);
+    CALI_MARK_BEGIN(comp_small);
+    local_length = -1;
     for (const int& elem : arr) {
         local_length = max(local_length, elem);
     }
     local_length = ceil(log10(local_length));
+    CALI_MARK_END(comp_small);
+    CALI_MARK_END(comp);
 
     // Get global max length
-    int global_length;
+    CALI_MARK_BEGIN(comm);
+    CALI_MARK_BEGIN(comm_small);
     MPI_Allreduce(&local_length, &global_length, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    CALI_MARK_END(comm_small);
+    CALI_MARK_END(comm);
 
-    vector<int> local_buckets; // TODO reuse?
-    vector<int> global_buckets;
-    vector<int> left_prefix;
-    vector<int> global_sum;
-    vector<int> global_prefix;
-    vector<int> temp; 
-    vector<int> buffer; // TODO Fix with double name
-    int slice = 1;
-    int index;
+    // Radix
+    slice = 1;
     for (i = 0; i < global_length; ++i) {
+        CALI_MARK_BEGIN(comp);
+        CALI_MARK_BEGIN(comp_small);
         local_buckets.assign(10, 0);
         for (const int& elem : arr) {
             local_buckets.at((elem / slice) % 10) += 1;
-
         }
 
         // Aggregate bucket data
         global_buckets.assign(10 * n_procs, 0);
-        MPI_Allgather(local_buckets.data(), 10, MPI_INT, global_buckets.data(), 10, MPI_INT, MPI_COMM_WORLD);
+        CALI_MARK_END(comp_small);
+        CALI_MARK_END(comp);
 
-        left_prefix.assign(10, 0);
+        CALI_MARK_BEGIN(comm);
+        CALI_MARK_BEGIN(comm_large);
+        MPI_Allgather(local_buckets.data(), 10, MPI_INT, global_buckets.data(), 10, MPI_INT, MPI_COMM_WORLD);
+        CALI_MARK_END(comm_large);
+        CALI_MARK_END(comm);
+
+        CALI_MARK_BEGIN(comp);
+        CALI_MARK_BEGIN(comp_large);        
+        left_sum.assign(10, 0);
         global_sum.assign(10, 0);
         bound = 10 * n_procs;
         for (j = 0; j < bound; ++j) {
             if (j / 10 <= rank) {
-                left_prefix.at(j % 10) += global_buckets.at(j);
+                left_sum.at(j % 10) += global_buckets.at(j);
 
             }
             global_sum.at(j % 10) += global_buckets.at(j);
 
         }
+        global_buckets.clear();
 
         global_prefix.assign(10, 0);
         global_prefix.at(0) = global_sum.at(0);
@@ -167,30 +211,51 @@ int main(int argc, char *argv[]) {
 
         // Repartition across processes
         temp.assign(n_per_proc, 0);
-        buffer.assign(2, 0);
+        send_buffer.clear();
         for (k = arr.cend() - 1; k >= arr.cbegin(); --k) {
             j = (*k / slice) % 10;
-            index = global_prefix.at(j) - global_sum.at(j) + left_prefix.at(j) - 1; // Earliest index (max index - # of val) + # of vals before (global and local) 
+            //      max index          to     min_index   to  position in set of vals 
+            index = global_prefix.at(j) - global_sum.at(j) + left_sum.at(j) - 1; 
             global_prefix.at(j) -= 1;
             
             if (index / n_per_proc == rank) {
                 temp.at(index % n_per_proc) = *k;
             }
             else {
-                buffer.at(0) = index % n_per_proc;
-                buffer.at(1) = *k;
-                MPI_Send(buffer.data(), 2, MPI_INT, index / n_per_proc, 0, MPI_COMM_WORLD);
-                MPI_Recv(buffer.data(), 2, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                temp.at(buffer.at(0)) = buffer.at(1);
+                send_buffer.push_back(index % n_per_proc);
+                send_buffer.push_back(*k);
+                send_buffer.push_back(index);
             }
         }
+        CALI_MARK_END(comp_large);
+        CALI_MARK_END(comp);
+
+        CALI_MARK_BEGIN(comm);
+        CALI_MARK_BEGIN(comm_large);
+        recv_buffer.assign(2, 0);
+        for (l = 0; l < send_buffer.size(); l += 3) {
+            MPI_Send(&send_buffer.data()[l], 2, MPI_INT, send_buffer.at(l + 2) / n_per_proc, 0, MPI_COMM_WORLD);
+            MPI_Recv(recv_buffer.data(), 2, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	        temp.at(recv_buffer.at(0)) = recv_buffer.at(1);        
+        }
+        CALI_MARK_END(comm_large);
+        CALI_MARK_END(comm);
+
+        CALI_MARK_BEGIN(comp);
+        CALI_MARK_BEGIN(comp_small);
         slice *= 10;
-        arr = move(temp);
+        arr = move(temp);        
+        CALI_MARK_END(comp_small);
+        CALI_MARK_END(comp);
+
     }
  
+    CALI_MARK_BEGIN(comm);
     MPI_Barrier(MPI_COMM_WORLD);
+    CALI_MARK_END(comm);
+
     // Check sort
-    int check;
+    CALI_MARK_BEGIN(correctness_check);
     for (i = 1; i < n_per_proc; ++i) {
         if (arr.at(i) < arr.at(i - 1)) {
             cerr << "Sort failed" << endl;
@@ -211,32 +276,31 @@ int main(int argc, char *argv[]) {
             exit(1);     
         }
     }
+    CALI_MARK_END(correctness_check);
 
     cout << rank << ' ' << " sorted and exited successfully!" << endl;
 
-   // Create caliper ConfigManager object
-//    cali::ConfigManager mgr;
-//    mgr.start();
+    adiak::init(NULL);
+    adiak::launchdate();    // launch date of the job
+    adiak::libraries();     // Libraries used
+    adiak::cmdline();       // Command line used to launch the job
+    adiak::clustername();   // Name of the cluster
+    adiak::value("algorithm", "radix"); // The name of the algorithm you are using (e.g., "merge", "bitonic")
+    adiak::value("programming_model", "mpi"); // e.g. "mpi"
+    adiak::value("data_type", "int"); // The datatype of input elements (e.g., double, int, float)
+    adiak::value("size_of_data_type", sizeof(int)); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
+    adiak::value("input_size", n_elems); // The number of elements in input dataset (1000)
+    // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
+    adiak::value("input_type", (input_type == 0) ? "sorted" : 
+                               (input_type == 1) ? "ReveseSorted" :
+                               (input_type == 2) ? "Random" : "1_perc_perturbed"); 
+    adiak::value("n_procs", n_procs); // The number of processors (MPI ranks)
+    adiak::value("scalability", "weak"); // The scalability of your algorithm. choices: ("strong", "weak")
+    adiak::value("group_num", "3"); // The number of your group (integer, e.g., 1, 10)
+    adiak::value("implementation_source", "Handwritten"); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
 
-
-    // adiak::init(NULL);
-    // adiak::launchdate();    // launch date of the job
-    // adiak::libraries();     // Libraries used
-    // adiak::cmdline();       // Command line used to launch the job
-    // adiak::clustername();   // Name of the cluster
-    // adiak::value("algorithm", algorithm); // The name of the algorithm you are using (e.g., "merge", "bitonic")
-    // adiak::value("programming_model", programming_model); // e.g. "mpi"
-    // adiak::value("data_type", data_type); // The datatype of input elements (e.g., double, int, float)
-    // adiak::value("size_of_data_type", size_of_data_type); // sizeof(datatype) of input elements in bytes (e.g., 1, 2, 4)
-    // adiak::value("input_size", input_size); // The number of elements in input dataset (1000)
-    // adiak::value("input_type", input_type); // For sorting, this would be choices: ("Sorted", "ReverseSorted", "Random", "1_perc_perturbed")
-    // adiak::value("n_procs", n_procs); // The number of processors (MPI ranks)
-    // adiak::value("scalability", scalability); // The scalability of your algorithm. choices: ("strong", "weak")
-    // adiak::value("group_num", group_number); // The number of your group (integer, e.g., 1, 10)
-    // adiak::value("implementation_source", implementation_source); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
-
-    // mgr.stop();
-    // mgr.flush();
+    mgr.stop();
+    mgr.flush();
     MPI_Finalize();
 
    return 0;

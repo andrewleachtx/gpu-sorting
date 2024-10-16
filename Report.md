@@ -18,6 +18,7 @@ Parallel sorting algorithms
     - Sample sort is a parallel sorting algorithm that works by sampling values from the unsorted input array, building buckets from the sampled values, and distributing work for processors to place elements into their respective buckets as well as sorting the buckets. It is often called a generalization of quicksort as it uses the same pivot mechanism to sort but does so in a way that we can more efficiently parallelize.
 - Merge Sort: Anil
 - Radix Sort: Gage
+    - A non-comparison based sorting algorithm, Radix sort works digit by digit to repeatedly reorder the array in a stable manner until all digits have been considered and the array is sorted. Each process handles a segment of the array, creating a histogram of the local digits, before consolidating the gathered data to generate a global histogram. Elements are then reordered accordingly in a distributed fashion, setting the stage for the process to repeat with the next digit. Procedurally similar to the sequential implementation, parallelization of the counting aspect of Radix sort allows for significant performance benefits at the cost of requiring extensive communication to physically sort elements and maintain an even distribution between processes.
 
 ### 2b. Pseudocode for each parallel algorithm
 #### Bitonic Sort:
