@@ -15,6 +15,7 @@ Parallel sorting algorithms
 ### 2a. Brief project description
 - Bitonic Sort: Andrew
 - Sample Sort: Brian
+    - Sample sort is a parallel sorting algorithm that works by sampling values from the unsorted input array, building buckets from the sampled values, and distributing work for processors to place elements into their respective buckets as well as sorting the buckets. It is often called a generalization of quicksort as it uses the same pivot mechanism to sort but does so in a way that we can more efficiently parallelize.
 - Merge Sort: Anil
 - Radix Sort: Gage
 
