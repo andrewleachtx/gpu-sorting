@@ -327,6 +327,27 @@ CALI_MARK_END("comp");
 └─ 0.00106 MPI_Comm_dup
 ```
 
+- Sample Sort: Brian
+```
+1.61089 main
+├─ 0.00003 MPI_Init
+├─ 0.00796 data_init_runtime
+├─ 0.04400 comm
+│  ├─ 0.04294 comm_large
+│  │  ├─ 0.04174 MPI_Recv
+│  │  └─ 0.00077 MPI_Send
+│  └─ 0.00920 comm_small
+│     └─ 0.00916 MPI_Send
+├─ 0.00249 comp
+│  ├─ 0.00002 comp_small
+│  └─ 0.00277 comp_large
+├─ 0.00008 correctness_check
+├─ 0.00000 MPI_Finalize
+├─ 0.00001 MPI_Initialized
+├─ 0.00001 MPI_Finalized
+└─ 0.02370 MPI_Comm_dup
+```
+
 - Merge Sort: Anil
 ```
 26.42026 main
@@ -405,10 +426,56 @@ group_num	3
 implementation_source	handwritten
 ```
 
+- Sample Sort: Brian
+```
+profile	1223936475
+launchdate	1729092251
+libraries	[/scratch/group/csce435-f24/Caliper/caliper/li...
+cmdline	[./sample-sort, 1024, 8]
+cluster	c
+algorithm	sample
+programming_model	mpi
+data_type	int
+size_of_data_type	4
+input_size	1024
+input_type	Random
+num_procs	9
+scalability	weak
+group_num	3
+implementation_source	handwritten
+```
+
 - Merge Sort: Anil
 ```
-	profile cali.caliper.version	mpi.world.size	spot.metrics	spot.timeseries.metrics	spot.format.version	spot.options	spot.channels	cali.channel	spot:node.order	spot:output	spot:profile.mpi	spot:region.count	spot:time.exclusive	spot:time.variance	launchdate	libraries	cmdline	cluster	algorithm	programming_model	data_type	size_of_data_type	input_size	input_type	num_procs	scalability	group_num	implementation_source
-    554544421	2.11.0	256	min#inclusive#sum#time.duration,max#inclusive#...		2	time.variance,profile.mpi,node.order,region.co...	regionprofile	spot	true	results/cali/256_268435456.cali	true	true	true	true	1728917829	[/scratch/group/csce435-f24/Caliper/caliper/li...	[./merge, 268435456]	c	merge	mpi	int	4	268435456	Random	256	weak	3	handwritten
+profile: 554544421
+cali.caliper.version: 2.11.0
+mpi.world.size: 256
+spot.metrics: min#inclusive#sum#time.duration,max#inclusive#...
+spot.timeseries.metrics:	
+spot.format.version: 2	
+spot.options: time.variance,profile.mpi,node.order,region.co...	
+spot.channels: regionprofile	
+cali.channel: spot	
+spot:node.order: true	
+spot:output: results/cali/256_268435456.cali		
+spot:profile.mpi: true	
+spot:region.count: true	
+spot:time.exclusive: true	
+spot:time.variance: true	
+launchdate: 1728917829	
+libraries: [/scratch/group/csce435-f24/Caliper/caliper/li...]		
+cmdline: [./merge, 268435456]		
+cluster: c	
+algorithm: merge	
+programming_model: mpi	
+data_type: int	
+size_of_data_type: 4	
+input_size: 268435456	
+input_type: Random	
+num_procs: 256	
+scalability: weak	
+group_num: 3	
+implementation_source: handwritten
 ```
 
 - Radix Sort: Gage
