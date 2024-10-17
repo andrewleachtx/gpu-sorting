@@ -369,21 +369,27 @@ CALI_MARK_END("comp");
 
 - Radix Sort: Gage
 ```
-profile 	3586131742
-launchdate 	1729134313
-libraries 	[/scratch/group/csce435-f24/Caliper/caliper/li...
-cmdline 	[./radix, 1048576, 0]
-cluster 	c
-algorithm 	radix
-programming_model 	mpi
-data_type 	int
-size_of_data_type 	4
-input_size 	1048576
-input_type 	sorted
-n_procs 	4
-scalability 	weak
-group_num 	3
-implementation_source 	Handwritten
+20.372 main
+├─ 0.000 MPI_Init
+├─ 0.004 data_init_X
+├─ 0.265 comp
+│  ├─ 0.050 comp_small
+│  └─ 0.214 comp_large
+├─ 19.724 comm
+│  ├─ 0.009 comm_small
+│  │  └─ 0.009 MPI_Allreduce
+│  ├─ 19.714 comm_large
+│  │  ├─ 0.001 MPI_Allgather
+│  │  ├─ 4.234 MPI_Send
+│  │  └─ 8.304 MPI_Recv
+│  └─ 0.000 MPI_Barrier
+├─ 0.006 correctness_check
+│  ├─ 0.000 MPI_Send
+│  └─ 0.000 MPI_Recv
+├─ 0.000 MPI_Finalize
+├─ 0.000 MPI_Initialized
+├─ 0.000 MPI_Finalized
+└─ 0.000 MPI_Comm_dup
 ```
 
 ### 3b. Collect Metadata
