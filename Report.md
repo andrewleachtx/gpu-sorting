@@ -328,7 +328,6 @@ CALI_MARK_END("comp");
 ```
 
 - Merge Sort: Anil
-
 ```
 26.42026 main
 ├─ 0.00004 MPI_Init
@@ -345,6 +344,25 @@ CALI_MARK_END("comp");
 ├─ 0.00001 MPI_Initialized
 ├─ 0.00001 MPI_Finalized
 └─ 21.95693 MPI_Comm_dup
+```
+
+- Radix Sort: Gage
+```
+profile 	3586131742
+launchdate 	1729134313
+libraries 	[/scratch/group/csce435-f24/Caliper/caliper/li...
+cmdline 	[./radix, 1048576, 0]
+cluster 	c
+algorithm 	radix
+programming_model 	mpi
+data_type 	int
+size_of_data_type 	4
+input_size 	1048576
+input_type 	sorted
+n_procs 	4
+scalability 	weak
+group_num 	3
+implementation_source 	Handwritten
 ```
 
 ### 3b. Collect Metadata
@@ -388,10 +406,29 @@ implementation_source	handwritten
 ```
 
 - Merge Sort: Anil
-
 ```
 	profile cali.caliper.version	mpi.world.size	spot.metrics	spot.timeseries.metrics	spot.format.version	spot.options	spot.channels	cali.channel	spot:node.order	spot:output	spot:profile.mpi	spot:region.count	spot:time.exclusive	spot:time.variance	launchdate	libraries	cmdline	cluster	algorithm	programming_model	data_type	size_of_data_type	input_size	input_type	num_procs	scalability	group_num	implementation_source
     554544421	2.11.0	256	min#inclusive#sum#time.duration,max#inclusive#...		2	time.variance,profile.mpi,node.order,region.co...	regionprofile	spot	true	results/cali/256_268435456.cali	true	true	true	true	1728917829	[/scratch/group/csce435-f24/Caliper/caliper/li...	[./merge, 268435456]	c	merge	mpi	int	4	268435456	Random	256	weak	3	handwritten
+```
+
+- Radix Sort: Gage
+```
+| Profile                  | 3586131742                                        |
+|--------------------------|---------------------------------------------------|
+| Launch Date              | 1729134313                                        |
+| Libraries                | [/scratch/group/csce435-f24/Caliper/caliper/li... |
+| Command Line             | [./radix, 1048576, 0]                             |
+| Cluster                  | c                                                 |
+| Algorithm                | radix                                             |
+| Programming Model        | mpi                                               |
+| Data Type                | int                                               |
+| Size of Data Type        | 4                                                 |
+| Input Size               | 1048576                                           |
+| Input Type               | sorted                                            |
+| Number of Processes      | 4                                                 |
+| Scalability              | weak                                              |
+| Group Number             | 3                                                 |
+| Implementation Source    | Handwritten                                       |
 ```
 
 They will show up in the `Thicket.metadata` if the caliper file is read into Thicket.
