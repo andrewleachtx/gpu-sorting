@@ -350,8 +350,35 @@ adiak::value("implementation_source", implementation_source); // Where you got t
 - Merge Sort: Anil
 
 ```
-	profile cali.caliper.version	mpi.world.size	spot.metrics	spot.timeseries.metrics	spot.format.version	spot.options	spot.channels	cali.channel	spot:node.order	spot:output	spot:profile.mpi	spot:region.count	spot:time.exclusive	spot:time.variance	launchdate	libraries	cmdline	cluster	algorithm	programming_model	data_type	size_of_data_type	input_size	input_type	num_procs	scalability	group_num	implementation_source
-    554544421	2.11.0	256	min#inclusive#sum#time.duration,max#inclusive#...		2	time.variance,profile.mpi,node.order,region.co...	regionprofile	spot	true	results/cali/256_268435456.cali	true	true	true	true	1728917829	[/scratch/group/csce435-f24/Caliper/caliper/li...	[./merge, 268435456]	c	merge	mpi	int	4	268435456	Random	256	weak	3	handwritten
+	profile: 554544421
+    cali.caliper.version: 2.11.0
+    mpi.world.size: 256
+    spot.metrics: min#inclusive#sum#time.duration,max#inclusive#...
+    spot.timeseries.metrics:	
+    spot.format.version: 2	
+    spot.options: time.variance,profile.mpi,node.order,region.co...	
+    spot.channels: regionprofile	
+    cali.channel: spot	
+    spot:node.order: true	
+    spot:output: results/cali/256_268435456.cali		
+    spot:profile.mpi: true	
+    spot:region.count: true	
+    spot:time.exclusive: true	
+    spot:time.variance: true	
+    launchdate: 1728917829	
+    libraries: [/scratch/group/csce435-f24/Caliper/caliper/li...]		
+    cmdline: [./merge, 268435456]		
+    cluster: c	
+    algorithm: merge	
+    programming_model: mpi	
+    data_type: int	
+    size_of_data_type: 4	
+    input_size: 268435456	
+    input_type: Random	
+    num_procs: 256	
+    scalability: weak	
+    group_num: 3	
+    implementation_source: handwritten
 ```
 
 They will show up in the `Thicket.metadata` if the caliper file is read into Thicket.
