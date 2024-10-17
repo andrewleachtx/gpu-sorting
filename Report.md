@@ -306,6 +306,25 @@ CALI_MARK_END("comp");
 └─ 0.440 correctness_check
 ```
 
+- Merge Sort: Anil
+
+26.42026 main
+├─ 0.00004 MPI_Init
+├─ 2.16805 main
+│  ├─ 0.03342 data_init_runtime
+│  ├─ 1.99352 comp
+│  │  └─ 1.99346 comp_large
+│  ├─ 0.10944 comm
+│  │  └─ 0.10940 comm_large
+│  │     ├─ 0.17937 MPI_Recv
+│  │     └─ 0.01974 MPI_Send
+│  └─ 1.42442 correctness_check
+├─ 0.00001 MPI_Finalize
+├─ 0.00001 MPI_Initialized
+├─ 0.00001 MPI_Finalized
+└─ 21.95693 MPI_Comm_dup
+
+
 ### 3b. Collect Metadata
 
 Have the following code in your programs to collect metadata:
@@ -326,6 +345,10 @@ adiak::value("scalability", scalability); // The scalability of your algorithm. 
 adiak::value("group_num", group_number); // The number of your group (integer, e.g., 1, 10)
 adiak::value("implementation_source", implementation_source); // Where you got the source code of your algorithm. choices: ("online", "ai", "handwritten").
 ```
+
+- Merge Sort: Anil
+	- profile cali.caliper.version	mpi.world.size	spot.metrics	spot.timeseries.metrics	spot.format.version	spot.options	spot.channels	cali.channel	spot:node.order	spot:output	spot:profile.mpi	spot:region.count	spot:time.exclusive	spot:time.variance	launchdate	libraries	cmdline	cluster	algorithm	programming_model	data_type	size_of_data_type	input_size	input_type	num_procs	scalability	group_num	implementation_source
+    - 554544421	2.11.0	256	min#inclusive#sum#time.duration,max#inclusive#...		2	time.variance,profile.mpi,node.order,region.co...	regionprofile	spot	true	results/cali/256_268435456.cali	true	true	true	true	1728917829	[/scratch/group/csce435-f24/Caliper/caliper/li...	[./merge, 268435456]	c	merge	mpi	int	4	268435456	Random	256	weak	3	handwritten
 
 They will show up in the `Thicket.metadata` if the caliper file is read into Thicket.
 
