@@ -327,6 +327,27 @@ CALI_MARK_END("comp");
 └─ 0.00106 MPI_Comm_dup
 ```
 
+- Sample Sort: Brian
+```
+1.61089 main
+├─ 0.00003 MPI_Init
+├─ 0.00796 data_init_runtime
+├─ 0.04400 comm
+│  ├─ 0.04294 comm_large
+│  │  ├─ 0.04174 MPI_Recv
+│  │  └─ 0.00077 MPI_Send
+│  └─ 0.00920 comm_small
+│     └─ 0.00916 MPI_Send
+├─ 0.00249 comp
+│  ├─ 0.00002 comp_small
+│  └─ 0.00277 comp_large
+├─ 0.00008 correctness_check
+├─ 0.00000 MPI_Finalize
+├─ 0.00001 MPI_Initialized
+├─ 0.00001 MPI_Finalized
+└─ 0.02370 MPI_Comm_dup
+```
+
 - Merge Sort: Anil
 
 ```
@@ -382,6 +403,25 @@ size_of_data_type	4
 input_size	32
 input_type	Random
 num_procs	16
+scalability	weak
+group_num	3
+implementation_source	handwritten
+```
+
+- Sample Sort: Brian
+```
+profile	1223936475
+launchdate	1729092251
+libraries	[/scratch/group/csce435-f24/Caliper/caliper/li...
+cmdline	[./sample-sort, 1024, 8]
+cluster	c
+algorithm	sample
+programming_model	mpi
+data_type	int
+size_of_data_type	4
+input_size	1024
+input_type	Random
+num_procs	9
 scalability	weak
 group_num	3
 implementation_source	handwritten
