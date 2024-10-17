@@ -390,35 +390,35 @@ implementation_source	handwritten
 - Merge Sort: Anil
 
 ```
-	profile: 554544421
-    cali.caliper.version: 2.11.0
-    mpi.world.size: 256
-    spot.metrics: min#inclusive#sum#time.duration,max#inclusive#...
-    spot.timeseries.metrics:	
-    spot.format.version: 2	
-    spot.options: time.variance,profile.mpi,node.order,region.co...	
-    spot.channels: regionprofile	
-    cali.channel: spot	
-    spot:node.order: true	
-    spot:output: results/cali/256_268435456.cali		
-    spot:profile.mpi: true	
-    spot:region.count: true	
-    spot:time.exclusive: true	
-    spot:time.variance: true	
-    launchdate: 1728917829	
-    libraries: [/scratch/group/csce435-f24/Caliper/caliper/li...]		
-    cmdline: [./merge, 268435456]		
-    cluster: c	
-    algorithm: merge	
-    programming_model: mpi	
-    data_type: int	
-    size_of_data_type: 4	
-    input_size: 268435456	
-    input_type: Random	
-    num_procs: 256	
-    scalability: weak	
-    group_num: 3	
-    implementation_source: handwritten
+profile: 554544421
+cali.caliper.version: 2.11.0
+mpi.world.size: 256
+spot.metrics: min#inclusive#sum#time.duration,max#inclusive#...
+spot.timeseries.metrics:	
+spot.format.version: 2	
+spot.options: time.variance,profile.mpi,node.order,region.co...	
+spot.channels: regionprofile	
+cali.channel: spot	
+spot:node.order: true	
+spot:output: results/cali/256_268435456.cali		
+spot:profile.mpi: true	
+spot:region.count: true	
+spot:time.exclusive: true	
+spot:time.variance: true	
+launchdate: 1728917829	
+libraries: [/scratch/group/csce435-f24/Caliper/caliper/li...]		
+cmdline: [./merge, 268435456]		
+cluster: c	
+algorithm: merge	
+programming_model: mpi	
+data_type: int	
+size_of_data_type: 4	
+input_size: 268435456	
+input_type: Random	
+num_procs: 256	
+scalability: weak	
+group_num: 3	
+implementation_source: handwritten
 ```
 
 They will show up in the `Thicket.metadata` if the caliper file is read into Thicket.
