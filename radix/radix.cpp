@@ -4,9 +4,9 @@
 #include <random>
 #include <cmath>
 #include <ctime>
-// #include <caliper/cali.h>
-// #include <caliper/cali-manager.h>
-// #include <adiak.hpp>
+#include <caliper/cali.h>
+#include <caliper/cali-manager.h>
+#include <adiak.hpp>
 
 using namespace std;
 
@@ -30,27 +30,26 @@ int main(int argc, char *argv[]) {
         global_length,
         slice,
         index,
-        check,
         i,
         j,
-        l,
+        k,
         buffer,
-        threshold,
-        received; 
-    vector<int>::const_iterator k;
-    vector<int> arr,
-                local_buckets,
-                global_buckets,
-                left_sum,
-                global_sum,
-                global_prefix,
-                temp,
-                recv_buffer,
-                *dest;
-    vector<MPI_Request> requests;
-    vector<MPI_Status> statuses;
-    vector<vector<int>> send_buffer,
-                        thing;
+        received,
+        sent,
+        local_buckets[10],
+        left_sum[10],
+        global_sum[10],
+        global_prefix[10];
+    vector<int>::const_iterator it;
+    vector<int> arr, // n_per_proc
+                global_buckets, // 10 * n_procs
+                temp, // n_per_proc
+                locations, // n_procs
+                sizes; // n_procs
+    vector<vector<int>> send_buffer, // n_per_proc * 2
+                        recv_buffer; // n_per_proc * 2
+    vector<MPI_Request> requests; // n_procs
+    vector<MPI_Status> statuses; // n_procs
     const char *data_init_X = "data_init_X",
                *comm = "comm",
                *comm_small = "comm_small",
@@ -93,62 +92,76 @@ int main(int argc, char *argv[]) {
     }
 
     // Create caliper ConfigManager object
-    CALI::ConfigManager mgr;
+    cali::ConfigManager mgr;
     mgr.start();
 
     // Generate array
     CALI_MARK_BEGIN(data_init_X);
     n_per_proc = n_elems / n_procs;
-    arr.assign(n_per_proc, 0);
+    arr.reserve(n_per_proc);
     if (input_type == SORTED || input_type == PERTURBED) {
         j = rank * n_per_proc;
         for (i = 0; i < n_per_proc; ++i) {
-            arr.at(i) = j;
+            arr.push_back(j);
             ++j;
 
         }
         if (input_type == PERTURBED) {
             srand(time(NULL) * (rank + n_procs)); 
-            threshold = RAND_MAX * 0.01;
+            bound = RAND_MAX * 0.01;
             for (i = 0; i < n_per_proc - 1; ++i) {
-                if (rand() <= threshold) {
-                    swap(arr.at(i), arr.at(i + 1));
+                if (rand() <= bound) {
+                    swap(arr[i], arr[i + 1]);
+
                 }
+
             }
             if (rank != n_procs - 1) { // Swap forward
-                buffer = rand() <= threshold ? arr.at(n_per_proc - 1) : -1;
+                buffer = (rand() <= bound) ? arr[n_per_proc - 1] : -1;
                 MPI_Send(&buffer, 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
+
             }
             if (rank != 0) { // Receive swap and respond
                 MPI_Recv(&buffer, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 if (buffer != -1) {
-                    swap(buffer, arr.at(0));
+                    swap(buffer, arr[0]);
+
                 }
                 else {
                     buffer = -1;
+
                 }
                 MPI_Send(&buffer, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD);
+
             }
             if (rank != n_procs - 1) { // Receive response
                 MPI_Recv(&buffer, 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 if (buffer != -1) {
-                    arr.at(n_per_proc - 1) = buffer; 
+                    arr[n_per_proc - 1] = buffer; 
+
                 }
+
             }
+
         }
+
     }
     else if (input_type == RANDOM) {
         srand(time(NULL) * (rank + n_procs)); 
         for (i = 0; i < n_per_proc; ++i) {
-            arr.at(i) = rand() % (n_elems / 4);
+            arr.push_back(rand() % (n_elems / 4));
+
         }
+
     }
     else if (input_type == REVERSE) {
         j = (n_procs - rank) * n_per_proc - 1;
         for (i = 0; i < n_per_proc; ++i) {
-            arr.at(i) = j;
+            arr.push_back(j);
             --j;
+
         }
+
     }
     CALI_MARK_END(data_init_X);
 
@@ -170,149 +183,154 @@ int main(int argc, char *argv[]) {
     CALI_MARK_END(comm_small);
     CALI_MARK_END(comm);
 
-    // Radix
+    // Radix Sort
     slice = 1;
-    global_buckets.assign(10 * n_procs, 0);
-    global_prefix.assign(10, 0);
-    send_buffer.assign(n_procs, vector<int>());
-    thing.assign(n_procs, vector<int>(n_per_proc * 2));
+    global_buckets.resize(10 * n_procs);
+    memset(global_prefix, 0, 10 * sizeof(int));
     requests.resize(n_procs * 2);
     statuses.resize(n_procs * 2);
     for (i = 0; i < global_length; ++i) {
         CALI_MARK_BEGIN(comp);
         CALI_MARK_BEGIN(comp_small);
-        send_buffer.assign(n_procs, vector<int>());
-        local_buckets.assign(10, 0);
+        // Local histogram
+        memset(local_buckets, 0, 10 * sizeof(int));
         for (const int& elem : arr) {
-            local_buckets.at((elem / slice) % 10) += 1;
-        }
+            local_buckets[(elem / slice) % 10] += 1;
 
-        // Aggregate bucket data
+        }
         CALI_MARK_END(comp_small);
         CALI_MARK_END(comp);
 
         CALI_MARK_BEGIN(comm);
         CALI_MARK_BEGIN(comm_large);
-        MPI_Allgather(local_buckets.data(), 10, MPI_INT, global_buckets.data(), 10, MPI_INT, MPI_COMM_WORLD);
+        // Aggregate bucket data
+        MPI_Allgather(local_buckets, 10, MPI_INT, global_buckets.data(), 10, MPI_INT, MPI_COMM_WORLD);
         CALI_MARK_END(comm_large);
         CALI_MARK_END(comm);
 
         CALI_MARK_BEGIN(comp);
-        CALI_MARK_BEGIN(comp_large);        
-        left_sum.assign(10, 0);
-        global_sum.assign(10, 0);
+        CALI_MARK_BEGIN(comp_large);    
+        // Calculate global prefix and sums    
+        memset(left_sum, 0, 10 * sizeof(int));
+        memset(global_sum, 0, 10 * sizeof(int));
         bound = 10 * n_procs;
         for (j = 0; j < bound; ++j) {
             if (j / 10 <= rank) {
-                left_sum.at(j % 10) += global_buckets.at(j);
+                left_sum[j % 10] += global_buckets[j]; 
 
             }
-            global_sum.at(j % 10) += global_buckets.at(j);
+            global_sum[j % 10] += global_buckets[j];
 
         }
 
-        global_prefix.at(0) = global_sum.at(0);
+        global_prefix[0] = global_sum[0];
         for (j = 1; j < 10; ++j) {
-            global_prefix.at(j) = global_sum.at(j) + global_prefix.at(j - 1);
+            global_prefix[j] = global_sum[j] + global_prefix[j - 1];
 
         }
 
         // Repartition across processes
         received = 0;
         temp.resize(n_per_proc);
-        for (k = arr.cend() - 1; k >= arr.cbegin(); --k) {
-            j = (*k / slice) % 10;
+        send_buffer.assign(n_procs, vector<int>());
+        for (it = arr.cend() - 1; it >= arr.cbegin(); --it) {
+            j = (*it / slice) % 10;
             //      max index          to     min_index   to  position in set of vals 
-            index = global_prefix.at(j) - global_sum.at(j) + left_sum.at(j) - 1; 
-            global_prefix.at(j) -= 1;
-            
-            if (index / n_per_proc == rank) {
-                temp.at(index % n_per_proc) = *k;
-                received += 1;
+            index = global_prefix[j] - global_sum[j] + left_sum[j] - 1; 
+            global_prefix[j] -= 1;
+
+            buffer = index / n_per_proc;
+            if (buffer == rank) {
+                temp[index % n_per_proc] = *it;
+                received += 2;
+
             }
             else {
-                dest = &send_buffer.at(index / n_per_proc);
-                dest->push_back(index % n_per_proc);
-                dest->push_back(*k);
+                send_buffer[buffer].push_back(index % n_per_proc);
+                send_buffer[buffer].push_back(*it);
+
             }
+
         }
         CALI_MARK_END(comp_large);
         CALI_MARK_END(comp);
 
         CALI_MARK_BEGIN(comm);
         CALI_MARK_BEGIN(comm_small);
-        recv_buffer.clear();
-        int counter = 0;
+        // Send sizes
+        sent = 0;
         for (j = 0; j < n_procs; ++j) {
-            if (send_buffer.at(j).size() > 0) {
-                counter += 1;
-                send_buffer.at(j).push_back(send_buffer.at(j).size());
-                MPI_Isend(&send_buffer.at(j).back(), 1, MPI_INT, j, 0, MPI_COMM_WORLD, &requests.at(0));
+            if (send_buffer[j].size() > 0) {
+                send_buffer[j].push_back(send_buffer[j].size());
+                MPI_Isend(&send_buffer[j].back(), 1, MPI_INT, j, 0, MPI_COMM_WORLD, requests.data());
+                sent += 1;
 
             }
+            send_buffer[j].shrink_to_fit();
+
         }
-        vector<int> locations;
-        vector<int> sizes;
-        while (received != n_per_proc) {
-            MPI_Recv(&buffer, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &statuses.at(0));
-            locations.push_back(statuses.at(0).MPI_SOURCE);
+
+        // Receive sizes
+        locations.clear();
+        sizes.clear();
+        while (received != (n_per_proc * 2)) {
+            MPI_Recv(&buffer, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, statuses.data());
+            locations.push_back(statuses[0].MPI_SOURCE);
             sizes.push_back(buffer);
-            received += buffer / 2;
+            received += buffer;
+
         }
-        thing.assign(locations.size(), vector<int>());
-
-
+        locations.shrink_to_fit();
+        sizes.shrink_to_fit();
+        recv_buffer.assign(locations.size(), vector<int>());
         CALI_MARK_END(comm_small);
-        MPI_Barrier(MPI_COMM_WORLD);
-        CALI_MARK_BEGIN(comm_large);
 
-        // Revert back to individual so I can save space
-        int todo = (int) locations.size();
+        MPI_Barrier(MPI_COMM_WORLD);
+
+        CALI_MARK_BEGIN(comm_large);
+        // Send elements
+        received = (int) locations.size();
         j = 0;
-        l = 0;
-        requests.resize(counter + todo);
-        while (j != n_procs || l != todo) {
-            if (j < n_procs && send_buffer.at(j).size() != 0) {
-                counter -= 1;
-                MPI_Isend(send_buffer.at(j).data(), send_buffer.at(j).back(), MPI_INT, j, 0, MPI_COMM_WORLD, &requests.at(todo + counter));
-                // cout << rank << " " << send_buffer.at(j).back() << " " << j << " a" << endl;
+        k = 0;
+        requests.resize(sent + received);
+        statuses.resize(sent + received);
+        while (j != n_procs || k != received) {
+            if (j < n_procs && send_buffer[j].size() != 0) {
+                sent -= 1;
+                MPI_Isend(send_buffer[j].data(), send_buffer[j].back(), MPI_INT, j, 0, MPI_COMM_WORLD, &requests[received + sent]);
+
             }
             ++j;
 
-            if (l < todo) {
-                thing.at(l).resize(sizes.at(l));
-                MPI_Irecv(thing.at(l).data(), sizes.at(l), MPI_INT, locations.at(l), MPI_ANY_TAG, MPI_COMM_WORLD, &requests.at(l));
-                // cout << rank << " " << sizes.at(l) << " b" << endl;
-                ++l;
+            if (k < received) {
+                recv_buffer[k].resize(sizes[k]);
+                MPI_Irecv(recv_buffer[k].data(), sizes[k], MPI_INT, locations[k], MPI_ANY_TAG, MPI_COMM_WORLD, &requests[k]);
+                ++k;
+
             }
+
         }
-
-        statuses.resize(requests.size());
-        MPI_Waitall(todo + counter, requests.data(), statuses.data());
-
-        for (j = 0; j < todo; ++j) {
-            bound = thing.at(j).size();
-            for (l = 0; l < bound; l += 2) {
-                temp.at(thing.at(j).at(l)) = thing.at(j).at(l + 1);
-            }
-        }
-
+        MPI_Waitall(sent + received, requests.data(), statuses.data());
         CALI_MARK_END(comm_large);
         CALI_MARK_END(comm);
 
         CALI_MARK_BEGIN(comp);
-        CALI_MARK_BEGIN(comp_small);
+        CALI_MARK_BEGIN(comp_large);
+        // Place received elements
+        for (j = 0; j < received; ++j) {
+            bound = (int) recv_buffer[j].size();
+
+            for (k = 0; k < bound; k += 2) {
+                temp[recv_buffer[j][k]] = recv_buffer[j][k + 1];
+
+            }
+
+        }
         slice *= 10;
         arr = move(temp);        
-        CALI_MARK_END(comp_small);
+        CALI_MARK_END(comp_large);
         CALI_MARK_END(comp);
-        // if (rank == 0 || rank == 1) {
-        //     cout << rank << endl;
-        //     for (int elem : arr) {
-        //         cout << elem << " ";
-        //     }
-        //     cout << endl;
-        // }
+
     }
  
     CALI_MARK_BEGIN(comm);
@@ -322,25 +340,31 @@ int main(int argc, char *argv[]) {
     // Check sort
     CALI_MARK_BEGIN(correctness_check);
     for (i = 1; i < n_per_proc; ++i) {
-        if (arr.at(i) < arr.at(i - 1)) {
+        if (arr[i] < arr[i - 1]) {
             cerr << "Sort failed" << endl;
             MPI_Abort(MPI_COMM_WORLD, rc);
-            exit(1);     
+            exit(1);    
+
         }
+
     }
 
     // Interprocess check
     if (rank != n_procs - 1) {
-        MPI_Send(&arr.at(n_per_proc - 1), 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
+        MPI_Send(&arr[n_per_proc - 1], 1, MPI_INT, rank + 1, 0, MPI_COMM_WORLD);
+
     }
     if (rank != 0) {
-        MPI_Recv(&check, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        if (arr.at(0) < check) {
+        MPI_Recv(&buffer, 1, MPI_INT, rank - 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        if (arr[0] < buffer) {
             cerr << rank << "Sort failed" << endl;
             MPI_Abort(MPI_COMM_WORLD, rc);
-            exit(1);     
+            exit(1);   
+
         }
+
     }
+    MPI_Barrier(MPI_COMM_WORLD);
     CALI_MARK_END(correctness_check);
 
     cout << rank << ' ' << " sorted and exited successfully!" << endl;
