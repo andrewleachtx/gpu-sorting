@@ -19,7 +19,6 @@ int main(int argc, char *argv[]) {
     // CALI_CXX_MARK_FUNCTION;
     MPI_Init(&argc,&argv);
     
-    MPI_Status status;
     int rc,
         rank, 
         n_procs,
@@ -47,9 +46,11 @@ int main(int argc, char *argv[]) {
                 global_prefix,
                 temp,
                 recv_buffer,
-                thing,
                 *dest;
-    vector<vector<int>> send_buffer;
+    vector<MPI_Request> requests;
+    vector<MPI_Status> statuses;
+    vector<vector<int>> send_buffer,
+                        thing;
     const char *data_init_X = "data_init_X",
                *comm = "comm",
                *comm_small = "comm_small",
@@ -91,8 +92,8 @@ int main(int argc, char *argv[]) {
         exit(1);     
     }
 
-    // Create caliper ConfigManager object
-    cali::ConfigManager mgr;
+    // Create CALIper ConfigManager object
+    CALI::ConfigManager mgr;
     mgr.start();
 
     // Generate array
@@ -175,7 +176,9 @@ int main(int argc, char *argv[]) {
     global_prefix.assign(10, 0);
     send_buffer.assign(n_procs, vector<int>(1 + n_per_proc * 2, 0));
     recv_buffer.resize(n_procs);
-    thing.resize(n_per_proc * 2);
+    thing.assign(n_procs, vector<int>(n_per_proc * 2));
+    requests.resize(n_procs * 2);
+    statuses.resize(n_procs * 2);
     for (i = 0; i < global_length; ++i) {
         CALI_MARK_BEGIN(comp);
         CALI_MARK_BEGIN(comp_small);
@@ -240,29 +243,31 @@ int main(int argc, char *argv[]) {
         CALI_MARK_BEGIN(comm_small);
         for (j = 0; j < n_procs; ++j) {
             MPI_Send(&send_buffer.at(j).at(0), 1, MPI_INT, j, 0, MPI_COMM_WORLD);
-            MPI_Recv(&buffer, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-            recv_buffer.at(status.MPI_SOURCE) = buffer;
+            MPI_Recv(&buffer, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &statuses.at(0));
+            recv_buffer.at(statuses.at(0).MPI_SOURCE) = buffer;
         }
 
         CALI_MARK_END(comm_small);
         MPI_Barrier(MPI_COMM_WORLD);
 
         CALI_MARK_BEGIN(comm_large);
-        dest = &send_buffer.at(rank);
+
         for (j = 0; j < n_procs; ++j) {
-            if (j != rank) {
-                MPI_Send(&send_buffer.at(j).at(1), send_buffer.at(j).at(0), MPI_INT, j, 0, MPI_COMM_WORLD);
-                send_buffer.at(j).at(0) = 0;
+            MPI_Isend(&send_buffer.at(j).at(1), send_buffer.at(j).at(0), MPI_INT, j, 0, MPI_COMM_WORLD, &requests.at(j));
+            MPI_Irecv(thing.at(j).data(), recv_buffer.at(j), MPI_INT, j, MPI_ANY_TAG, MPI_COMM_WORLD, &requests.at(n_procs + j));
+        }
+
+        MPI_Waitall(n_procs * 2, requests.data(), statuses.data());
+
+        for (j = 0; j < n_procs; ++j) {
+            bound = recv_buffer.at(j);
+            for (l = 0; l < bound; l += 2) {
+                temp.at(thing.at(j).at(l)) = thing.at(j).at(l + 1);
             }
         }
+
         for (j = 0; j < n_procs; ++j) {
-            if (j != rank) {
-                MPI_Recv(thing.data(), recv_buffer.at(j), MPI_INT, j, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                bound = recv_buffer.at(j);
-                for (l = 0; l < bound; l += 2) {
-                    temp.at(thing.at(l)) = thing.at(l + 1);
-                }    
-            }
+            send_buffer.at(j).at(0) = 0;
         }
 
         CALI_MARK_END(comm_large);
