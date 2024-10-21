@@ -4,9 +4,9 @@
 #include <random>
 #include <cmath>
 #include <ctime>
-#include <caliper/cali.h>
-#include <caliper/cali-manager.h>
-#include <adiak.hpp>
+// #include <caliper/cali.h>
+// #include <caliper/cali-manager.h>
+// #include <adiak.hpp>
 
 using namespace std;
 
@@ -16,7 +16,7 @@ using namespace std;
 #define PERTURBED 3
 
 int main(int argc, char *argv[]) {
-    // CALI_CXX_MARK_FUNCTION;
+    CALI_CXX_MARK_FUNCTION;
     MPI_Init(&argc,&argv);
     
     int rc,
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
         exit(1);     
     }
 
-    // Create CALIper ConfigManager object
+    // Create caliper ConfigManager object
     CALI::ConfigManager mgr;
     mgr.start();
 
@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
     else if (input_type == RANDOM) {
         srand(time(NULL) * (rank + n_procs)); 
         for (i = 0; i < n_per_proc; ++i) {
-            arr.at(i) = rand() % 1000;
+            arr.at(i) = rand() % (n_elems / 4);
         }
     }
     else if (input_type == REVERSE) {
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
             --j;
         }
     }
-    // CALI_MARK_END(data_init_X);
+    CALI_MARK_END(data_init_X);
 
     // Get local max length
     CALI_MARK_BEGIN(comp);
@@ -174,14 +174,14 @@ int main(int argc, char *argv[]) {
     slice = 1;
     global_buckets.assign(10 * n_procs, 0);
     global_prefix.assign(10, 0);
-    send_buffer.assign(n_procs, vector<int>(1 + n_per_proc * 2, 0));
-    recv_buffer.resize(n_procs);
+    send_buffer.assign(n_procs, vector<int>());
     thing.assign(n_procs, vector<int>(n_per_proc * 2));
     requests.resize(n_procs * 2);
     statuses.resize(n_procs * 2);
     for (i = 0; i < global_length; ++i) {
         CALI_MARK_BEGIN(comp);
         CALI_MARK_BEGIN(comp_small);
+        send_buffer.assign(n_procs, vector<int>());
         local_buckets.assign(10, 0);
         for (const int& elem : arr) {
             local_buckets.at((elem / slice) % 10) += 1;
@@ -218,6 +218,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Repartition across processes
+        received = 0;
         temp.resize(n_per_proc);
         for (k = arr.cend() - 1; k >= arr.cbegin(); --k) {
             j = (*k / slice) % 10;
@@ -231,9 +232,8 @@ int main(int argc, char *argv[]) {
             }
             else {
                 dest = &send_buffer.at(index / n_per_proc);
-                dest->at(0) += 2;
-                dest->at(dest->at(0) - 1) = index % n_per_proc;
-                dest->at(dest->at(0)) = *k;
+                dest->push_back(index % n_per_proc);
+                dest->push_back(*k);
             }
         }
         CALI_MARK_END(comp_large);
@@ -241,33 +241,60 @@ int main(int argc, char *argv[]) {
 
         CALI_MARK_BEGIN(comm);
         CALI_MARK_BEGIN(comm_small);
+        recv_buffer.clear();
+        int counter = 0;
         for (j = 0; j < n_procs; ++j) {
-            MPI_Send(&send_buffer.at(j).at(0), 1, MPI_INT, j, 0, MPI_COMM_WORLD);
-            MPI_Recv(&buffer, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &statuses.at(0));
-            recv_buffer.at(statuses.at(0).MPI_SOURCE) = buffer;
+            if (send_buffer.at(j).size() > 0) {
+                counter += 1;
+                send_buffer.at(j).push_back(send_buffer.at(j).size());
+                MPI_Isend(&send_buffer.at(j).back(), 1, MPI_INT, j, 0, MPI_COMM_WORLD, &requests.at(0));
+
+            }
         }
+        vector<int> locations;
+        vector<int> sizes;
+        while (received != n_per_proc) {
+            MPI_Recv(&buffer, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &statuses.at(0));
+            locations.push_back(statuses.at(0).MPI_SOURCE);
+            sizes.push_back(buffer);
+            received += buffer / 2;
+        }
+        thing.assign(locations.size(), vector<int>());
+
 
         CALI_MARK_END(comm_small);
         MPI_Barrier(MPI_COMM_WORLD);
-
         CALI_MARK_BEGIN(comm_large);
 
-        for (j = 0; j < n_procs; ++j) {
-            MPI_Isend(&send_buffer.at(j).at(1), send_buffer.at(j).at(0), MPI_INT, j, 0, MPI_COMM_WORLD, &requests.at(j));
-            MPI_Irecv(thing.at(j).data(), recv_buffer.at(j), MPI_INT, j, MPI_ANY_TAG, MPI_COMM_WORLD, &requests.at(n_procs + j));
-        }
+        // Revert back to individual so I can save space
+        int todo = (int) locations.size();
+        j = 0;
+        l = 0;
+        requests.resize(counter + todo);
+        while (j != n_procs || l != todo) {
+            if (j < n_procs && send_buffer.at(j).size() != 0) {
+                counter -= 1;
+                MPI_Isend(send_buffer.at(j).data(), send_buffer.at(j).back(), MPI_INT, j, 0, MPI_COMM_WORLD, &requests.at(todo + counter));
+                // cout << rank << " " << send_buffer.at(j).back() << " " << j << " a" << endl;
+            }
+            ++j;
 
-        MPI_Waitall(n_procs * 2, requests.data(), statuses.data());
-
-        for (j = 0; j < n_procs; ++j) {
-            bound = recv_buffer.at(j);
-            for (l = 0; l < bound; l += 2) {
-                temp.at(thing.at(j).at(l)) = thing.at(j).at(l + 1);
+            if (l < todo) {
+                thing.at(l).resize(sizes.at(l));
+                MPI_Irecv(thing.at(l).data(), sizes.at(l), MPI_INT, locations.at(l), MPI_ANY_TAG, MPI_COMM_WORLD, &requests.at(l));
+                // cout << rank << " " << sizes.at(l) << " b" << endl;
+                ++l;
             }
         }
 
-        for (j = 0; j < n_procs; ++j) {
-            send_buffer.at(j).at(0) = 0;
+        statuses.resize(requests.size());
+        MPI_Waitall(todo + counter, requests.data(), statuses.data());
+
+        for (j = 0; j < todo; ++j) {
+            bound = thing.at(j).size();
+            for (l = 0; l < bound; l += 2) {
+                temp.at(thing.at(j).at(l)) = thing.at(j).at(l + 1);
+            }
         }
 
         CALI_MARK_END(comm_large);
@@ -279,6 +306,13 @@ int main(int argc, char *argv[]) {
         arr = move(temp);        
         CALI_MARK_END(comp_small);
         CALI_MARK_END(comp);
+        // if (rank == 0 || rank == 1) {
+        //     cout << rank << endl;
+        //     for (int elem : arr) {
+        //         cout << elem << " ";
+        //     }
+        //     cout << endl;
+        // }
     }
  
     CALI_MARK_BEGIN(comm);
