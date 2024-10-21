@@ -157,8 +157,7 @@ construct the fully sorted input.
 #### Merge Sort:
 
 ```
-global variable threadCount
-global variable maxThreads
+global variable numProcessors
 
 function merge (list1, list2):
 - loop through the lists and create a merged list in sorted order
@@ -169,21 +168,23 @@ function merge (list1, list2):
 - Add leftover values from one of the lists if necessary
 - Return sorted list
 
-function parallelMergeSort(list):
+function mergeSort(list):
 - If list is only 1 entry return
 - Find the middle index of the list
 - Create two new lists each containing half of the original list
-- if threadCount is less than maxthreads:
-- - Create a thread for the first half of the list and call parallelMergeSort() within that thread
-- - increment threadCount by 1 (make sure to secure a lock before modifying the global variable)
-- - Call parallelMergeSort() on the second half of the list
-- - Synch threads (wait until "master" has the results from both halves of the list)
-- - Decrement threadCount to potentially allow a new thread to be made (make sure to secure a lock before modifying the global variable)
 - Else:
-- - call parallelMergeSort() on the first half of the list
-- - call parallelMergeSort() on the second half of the list
+- - call mergeSort() on the first half of the list
+- - call mergeSort() on the second half of the list
 - Call merge using the two halves of the lists which will return the sorted list
-```
+
+function parallelMergeSort(list):
+- Initialize as many processors as are being called for (numProcessors)
+- Split up the list in equal chunks among each of the processors
+- Have each processor call mergeSort() on its chunk of the list
+- Once all processors are done with their work and have each returned a sorted sub-list, progressively merge() together the sub-lists
+- For each iteration of merging, log2(numProcessors) total iterations, in parallel, half of the active processors will send their values to another active processor to merge and then go idle
+- - This will continue until the last remaining processor, the master, has obtained the complete sorted list
+``` 
 
 #### Radix Sort:
 
