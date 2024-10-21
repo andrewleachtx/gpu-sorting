@@ -5,7 +5,7 @@ cores_per_node=48
 mem_per_node=384
 
 sortname="merge"
-output_dir="./results/"
+output_dir="./resultsPerturbed/"
 timestamp_hash=$(date +%s)
 
 # In merge.grace_job these are set to this for sed to find
@@ -19,10 +19,10 @@ replace_mem="MEM_NEEDED"
 replace_hash="HASH"
 
 # Uncomment these ones to test
-array_sizes=(65536)
-num_processes=(128)
-#array_sizes=(4194304 16777216 67108864)
-#num_processes=(2 4 8 16 32 64 128 256 512)
+#array_sizes=(268435456)
+#num_processes=(2)
+array_sizes=(65536 262144 1048576 4194304 16777216 67108864 268435456)
+num_processes=(2 4 8 16 32 64 128 256 512 1024)
 
 for array_sz in "${array_sizes[@]}"; do
     for p in "${num_processes[@]}"; do
@@ -40,6 +40,8 @@ for array_sz in "${array_sizes[@]}"; do
 
         # Determine memory needed per node
         mem_needed=$(($num_tasks * $mem_per_node / $cores_per_node))
+        
+        mem_needed=$(( mem_needed > 16 ? 16 : mem_needed ))
 
         # Create altered job file - "s|<string to look for>|<what to replace it with>|g"
         sed "s|$replace_sortname|$sortname|g; \
