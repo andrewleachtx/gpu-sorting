@@ -545,6 +545,11 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - Total time
     - Variance time/rank
 
+Graphs:
+
+- Merge Sort
+
+![image info](./merge/graphs/main_Random_Input_size_65536.png)
 
 ## 5. Presentation
 Plots for the presentation should be as follows:
