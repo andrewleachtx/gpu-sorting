@@ -549,7 +549,7 @@ Graphs:
 
 - Merge Sort
 
-- - Random Main Times
+    - Random Main Times
 
 ![image info](./merge/graphs/main_Random_Input_size_65536.png)
 
@@ -565,7 +565,7 @@ Graphs:
 
 ![image info](./merge/graphs/main_Random_Input_size_268435456.png)
 
-- - Sorted Main Times
+    - Sorted Main Times
 
 ![image info](./merge/graphs/mainSorted65536.png)
 
@@ -580,8 +580,8 @@ Graphs:
 ![image info](./merge/graphs/mainSorted67108864.png)
 
 ![image info](./merge/graphs/mainSorted268435456.png)
-
-- - Reverse Main Times
+    
+    - Reverse Main Times
 
 ![image info](./merge/graphs/mainReverse65536.png)
 
@@ -597,7 +597,7 @@ Graphs:
 
 ![image info](./merge/graphs/mainReverse268435456.png)
 
-- - Perturbed Main Times
+    - Perturbed Main Times
 
 ![image info](./merge/graphs/mainPerturbed65536.png)
 
