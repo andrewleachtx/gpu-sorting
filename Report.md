@@ -553,17 +553,17 @@ Graphs:
 
     ![image info](./merge/graphs/main_Random_Input_size_65536.png)
     
-    ![image info]("./merge/graphs/main_Random_Input size_262144.png")
+    ![image info](./merge/graphs/main_Random_Input_size_262144.png)
 
     ![image info](./merge/graphs/main_Random_Input_size_1048576.png)
 
     ![image info](./merge/graphs/main_Random_Input_size_4194304.png)
 
-    ![image info]("./merge/graphs/main_Random_Input size_16777216.png")
+    ![image info](./merge/graphs/main_Random_Input_size_16777216.png)
 
-    ![image info]("./merge/graphs/main_Random_Input size_67108864.png")
+    ![image info](./merge/graphs/main_Random_Input_size_67108864.png)
 
-    ![image info]("./merge/graphs/main_Random_Input size_268435456.png")
+    ![image info](./merge/graphs/main_Random_Input_size_268435456.png)
 
     - Sorted Main Times
 
