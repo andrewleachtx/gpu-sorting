@@ -39,6 +39,10 @@ int main(int argc, char** argv) {
   cali::ConfigManager mgr;
   mgr.start();
 
+  if (mgr.error()) {
+    std::cerr << "Cali ConfigManager error: " << mgr.error_msg() << std::endl;
+  }
+
   int rank, n_procs;
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &n_procs);
@@ -82,6 +86,11 @@ int main(int argc, char** argv) {
       pivots.push_back(sample[i]);
     }
     pivots.push_back(sample[sample.size() - 1]);
+
+    // for(int i = 0; i < pivots.size(); i++) {
+    //   cout << pivots[i] << ", ";
+    // }
+    // cout << endl;
    
     CALI_MARK_END(comp_small);
     CALI_MARK_END(comp);
@@ -122,7 +131,7 @@ int main(int argc, char** argv) {
   } else {
     //worker processor
     //receive bucket boundaries
-    int* pivots = new int[oversampling_factor];
+    int* pivots = new int[num_workers + 1];
     
     CALI_MARK_BEGIN(comm);
     CALI_MARK_BEGIN(comm_large);
@@ -134,20 +143,37 @@ int main(int argc, char** argv) {
     CALI_MARK_END(comm_large);
     CALI_MARK_END(comm);
 
+    // cout << "Received Workload" << endl;
+    // for(int i = 0; i < workload_size; i++) {
+    //   cout << workload[i] << ", ";
+    // }
+    // cout << endl;
+    // cout << "Workload Size: " << workload_size << endl;
+
     //sort data into buckets
     CALI_MARK_BEGIN(comp);
     CALI_MARK_BEGIN(comp_large);
     vector<vector<int>> buckets(num_workers, vector<int>());
     for(int i = 0; i < workload_size; i++) {
       int num = workload[i];
-      for(int j = 0; j < oversampling_factor - 1; j++) {
+      bool added = false;
+      for(int j = 0; j < num_workers; j++) {
         int lower_bound = pivots[j];
         int upper_bound = pivots[j + 1];
-        if(num >= lower_bound && num < upper_bound) {
+        if(num >= lower_bound && num <= upper_bound) {
           buckets[j].push_back(num);
+          added = true;
           break;
         }
       }
+      if(!added) {
+        if(num < pivots[0]) {
+          buckets[0].push_back(num);
+        } else {
+          buckets[buckets.size() - 1].push_back(num);
+        }
+      }
+  
     }
     CALI_MARK_END(comp_large);
     CALI_MARK_END(comp);
@@ -179,7 +205,6 @@ int main(int argc, char** argv) {
       for(int j = 0; j < data_size; j++) {
         buckets[rank - 1].push_back(buf[j]);
       }
-      delete[] buf;
     }
     CALI_MARK_END(comm_large);
     CALI_MARK_END(comm);
@@ -219,19 +244,20 @@ int main(int argc, char** argv) {
   }
 
   // Can print to test
-  CALI_MARK_BEGIN(correctness_check);
   if (rank == MASTER) {
+    CALI_MARK_BEGIN(correctness_check);
     for(int i = 1; i < result.size(); i++) {
       if(result[i] < result[i - 1]) {
-        cout << "Sorting incorrect" << endl;
+        cout << "Sorting incorrect" << result[i - 1] << ", " << result[i] << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
       }
+      //cout << result[i - 1] << ", ";
     }
+    //cout << endl;
     cout << "Sorting correct" << endl;
-
+    cout << "Result size: " << result.size() << endl;
+    CALI_MARK_END(correctness_check);
   }
-  CALI_MARK_END(correctness_check);
-
   // Flush Caliper output before finalizing MPI
   mgr.stop();
   mgr.flush();

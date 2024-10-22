@@ -25,6 +25,7 @@ oversample_factor=$3
 module load intel/2020b       # load Intel software stack
 module load CMake/3.12.1
 module load GCCcore/8.3.0
+module load PAPI/6.0.0
 
 CALI_CONFIG="spot(output=p${num_workers}-a${array_sz}.cali, \
     time.variance,profile.mpi)" \
