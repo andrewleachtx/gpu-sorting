@@ -549,7 +549,69 @@ Graphs:
 
 - Merge Sort
 
+- - Random Main Times
+
 ![image info](./merge/graphs/main_Random_Input_size_65536.png)
+
+![image info](./merge/graphs/main_Random_Input_size_262144.png)
+
+![image info](./merge/graphs/main_Random_Input_size_1048576.png)
+
+![image info](./merge/graphs/main_Random_Input_size_4194304.png)
+
+![image info](./merge/graphs/main_Random_Input_size_16777216.png)
+
+![image info](./merge/graphs/main_Random_Input_size_67108864.png)
+
+![image info](./merge/graphs/main_Random_Input_size_268435456.png)
+
+- - Sorted Main Times
+
+![image info](./merge/graphs/mainSorted65536.png)
+
+![image info](./merge/graphs/mainSorted262144.png)
+
+![image info](./merge/graphs/mainSorted1048576.png)
+
+![image info](./merge/graphs/mainSorted4194304.png)
+
+![image info](./merge/graphs/mainSorted16777216.png)
+
+![image info](./merge/graphs/mainSorted67108864.png)
+
+![image info](./merge/graphs/mainSorted268435456.png)
+
+- - Reverse Main Times
+
+![image info](./merge/graphs/mainReverse65536.png)
+
+![image info](./merge/graphs/mainReverse262144.png)
+
+![image info](./merge/graphs/mainReverse1048576.png)
+
+![image info](./merge/graphs/mainReverse4194304.png)
+
+![image info](./merge/graphs/mainReverse16777216.png)
+
+![image info](./merge/graphs/mainReverse67108864.png)
+
+![image info](./merge/graphs/mainReverse268435456.png)
+
+- - Perturbed Main Times
+
+![image info](./merge/graphs/mainPerturbed65536.png)
+
+![image info](./merge/graphs/mainPerturbed262144.png)
+
+![image info](./merge/graphs/mainPerturbed1048576.png)
+
+![image info](./merge/graphs/mainPerturbed4194304.png)
+
+![image info](./merge/graphs/mainPerturbed16777216.png)
+
+![image info](./merge/graphs/mainPerturbed67108864.png)
+
+![image info](./merge/graphs/mainPerturbed268435456.png)
 
 ## 5. Presentation
 Plots for the presentation should be as follows:
