@@ -546,6 +546,196 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
     - Variance time/rank
 
 Graphs:
+## Sample Sort
+
+### Graphs of Input Size $2^{16}$ (65536 elements)
+
+#### Random Input
+
+![Random Main Times](./sample-sort/graphs/Random_65536.png)
+Looking at the performance for random input of size 65536, We can see that as the number of processors increases, our performance decreases. We can see a significant spike from 64 to 128 which may be due to increased communication overhead dealing with increasing processors.
+
+#### Perturbed Input
+
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_65536.png)
+Looking at the performance of perturbed input of size 65536, we can see a steady increase in sort time as we increase the number of processes. This is due to us having a large communication overhead and small input size, in which the overhead outweighs parallel performance gains.
+
+
+#### Reversed Input
+
+![Reversed Main Times](./sample-sort/graphs/Reversed_65536.png)
+In the performance analysis of reverse sorted input of size 65536, we can see that as the number of processors increase, our performance continues to decrease as we take more time. This may be due to the cost of extensively communicating between workers in sample sort. And since our input is small, the overhead is large and outweighs the benefits.
+
+#### Sorted Input
+
+![Sorted Main Times](./sample-sort/graphs/Sorted_65536.png)
+Looking at the performance of sorted input of size 65536, we can see that there is a steady decrease in performance as we increase the number of processors. This is due to poor sampling as we are sampling only the first few values of our input and using them as our bucket boundaries, causing us to have less parallelization.
+
+---
+
+### Graphs of Input Size $2^{18}$
+
+#### Random Input
+
+![Random Main Times](./sample-sort/graphs/Random_262144.png)
+Looking at the performance of random input on size 262144, we can see that there is a decrease in performance as we increase the number of processors. More specifically, we see a huge increase from 16 to 64 processes. Since our input is random, there is a lot of luck if we choose the correct bucket boundaries which significantly affects how much we can parallelize our sorting. Also communication overhead plays a huge part in the decrease in performance as we are communicating with more processes.
+
+
+#### Perturbed Input
+
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_262144.png)
+For a perturbed input size of 262144, the sorting time steadily increases as the number of processes grows. This is because the communication overhead is significant compared to the small input size, causing the overhead to outweigh any performance benefits from parallelization. Also, since our input is only partially sorted, it's possible we’re sampling poorly.
+
+
+#### Reversed Input
+
+![Reversed Main Times](./sample-sort/graphs/Reversed_262144.png)
+In the performance analysis of reverse sorted input of size 262144, we can see that as the number of processors increase, our performance continues to decrease as we take more time. This may be due to the cost of extensively communicating between workers in sample sort. And since our input is small, the overhead is large and outweighs the benefits.
+
+
+#### Sorted Input
+
+![Sorted Main Times](./sample-sort/graphs/Sorted_262144.png)
+For a sorted input size of 262144, the performance steadily declines as more processors are added. This drop is a result of ineffective sampling, as we are only selecting the initial values from the input to define our bucket boundaries. This leads to limited parallelization, which negatively impacts the overall performance.
+
+---
+
+### Graphs of Input Size $2^{20}$
+
+#### Random Input
+
+![Random Main Times](./sample-sort/graphs/Random_1048576.png)
+Similar to earlier graphs, the sort time for random input of size 1048576 increases as we scale up the number of processes. We observe notable spikes in performance at 64 and 256 processes. The decreased efficiency is primarily due to communication overhead and suboptimal sampling, especially given that the input is partially sorted.
+
+
+
+#### Perturbed Input
+
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_1048576.png)
+Similar to earlier graphs, the sort time for perturbed input of size 1048576 increases as we scale up the number of processes. We observe notable spikes in performance at 64 and 256 processes. The decreased efficiency is primarily due to communication overhead and suboptimal sampling, especially given that the input is partially sorted.
+
+
+#### Reversed Input
+
+![Reversed Main Times](./sample-sort/graphs/Reversed_1048576.png)
+As we can see, for reverse sorted inputs of size 1048576, as we increase the number of processors, our performance goes down. This is because the large overhead sample sort has since workers have to communicate between all other workers to receive corresponding bucket data.
+
+#### Sorted Input
+
+![Sorted Main Times](./sample-sort/graphs/Sorted_1048576.png)
+For sorted input size 1048576, we can see that we have a decrease in performance as we increase the number of processes. We can see that from 256 - 512 processes we actually improve in performance, which is surprising. Poor performance is attributed to communication overhead and poor sampling.
+
+---
+
+### Graphs of Input Size $2^{22}$
+
+#### Random Input
+
+![Random Main Times](./sample-sort/graphs/Random_4194304.png)
+As with the earlier graphs, the sort time for random input of size 4194304 grows as the number of processes increases. There are noticeable spikes in performance at 64 and 256 processes. This decline in efficiency is mainly due to communication overhead and inadequate sampling, especially because the input is partially sorted.
+
+
+
+
+#### Perturbed Input
+
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_4194304.png)
+As with the earlier graphs, the sort time for perturbed input of size 4194304 grows as the number of processes increases. There are noticeable spikes in performance at 64 and 256 processes. This decline in efficiency is mainly due to communication overhead and inadequate sampling, especially because the input is partially sorted.
+
+
+
+#### Reversed Input
+
+![Reversed Main Times](./sample-sort/graphs/Reversed_4194304.png)
+For reverse sorted inputs of size 4193404, we see a similar trend where the performance goes down as we increase processors. This is expected because sample sort uses a lot of communication to redirect data to corresponding workers.
+
+#### Sorted Input
+
+![Sorted Main Times](./sample-sort/graphs/Sorted_4194304.png)
+With a sorted input size of 4194304, performance decreases as the number of processes increases. Interestingly, there is an unexpected improvement in performance between 256 and 512 processes. The overall performance drop can be attributed to communication overhead and ineffective sampling.
+
+---
+
+### Graphs of Input Size $2^{24}$
+
+#### Random Input
+
+![Random Main Times](./sample-sort/graphs/Random_16777216.png)
+For the performance of random input of size 16777216, we can see that there is an increase in performance from 2 - 16 processors, then a decline in performance from 16 - 512 processors. This is due to us choosing poor samples, not representative of the range of numbers inside the input, causing us to have less of the sorting done in parallel.
+
+
+#### Perturbed Input
+
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_16777216.png)
+Similarly, with perturbed inputs of size 16777216, we see a decline in performance with an increase in processes, especially around 64 and 256 processes. This is due to large communication overheads and poor sampling because we’re partially sorted.
+
+
+#### Reversed Input
+
+![Reversed Main Times](./sample-sort/graphs/Reversed_16777216.png)
+In the performance analysis of reverse sorted input of size 16777216, we can see there is a decrease in performance as we increase the number of processors. This may be because of large communication overhead associated with sample sort which only gets larger as we increase processes. Also, since the input is sorted, the sample will be extremely lopsided meaning that one bucket will contain a good majority of the elements. Reducing the amount of parallelized work being done.
+
+#### Sorted Input
+
+![Sorted Main Times](./sample-sort/graphs/Sorted_16777216.png)
+Similarly to the previous graphs, performance for sorted input of size 16777216 has an increase in sort time as we increase processes. Similarly we see spikes at process 64 and 256. Poor performance is due to communication overhead and poor sampling due to input being already sorted.
+
+---
+
+### Graphs of Input Size $2^{26}$
+
+#### Random Input
+
+![Random Main Times](./sample-sort/graphs/Random_67108864.png)
+Looking at the performance of random input of size 67108864, We can see a steady decrease in sort time as we increase the number of processors. This is likely due to us having a sufficient amount of data such that our performance gains are greater than our overheads. We are also probably getting lucky and choosing good bucket boundaries that are representative of the range of values in the input. Algorithm timed out for 64 processes.
+
+
+#### Perturbed Input
+
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_67108864.png)
+Looking at the performance for perturbed input of size 67108864, we can see a similar trend. There are spikes in sorting time at 64 and 256 processes and a general decrease in performance as we increase the number of processes. Similarly. This is attributed to large communication overheads used by sample sort as well as poor sampling, which create non-representative bucket boundaries.
+
+
+#### Reversed Input
+
+![Reversed Main Times](./sample-sort/graphs/Reversed_67108864.png)
+In the performance analysis of reverse sorted input of size 67108864, we can see there is a decrease in performance as we increase the number of processors. This may be because of large communication overhead associated with sample sort which only gets larger as we increase processes. Also, since the input is sorted, the sample will be extremely lopsided meaning that one bucket will contain a good majority of the elements. Reducing the amount of parallelized work being done.
+
+
+#### Sorted Input
+
+![Sorted Main Times](./sample-sort/graphs/Sorted_67108864.png)
+As seen in the previous graphs, the sorting time for random input of size 67108864 increases as the number of processes rises. Similar performance spikes occur at 64 and 256 processes. The poor performance can be attributed to communication overhead and ineffective sampling, particularly because the input is already sorted.
+
+---
+
+### Graphs of Input Size $2^{28}$
+
+#### Random Input
+
+![Random Main Times](./sample-sort/graphs/Random_268435456.png)
+For a random input size of 268435456, there is a noticeable decrease in sorting time as the number of processors increases. This can be attributed to having a large enough dataset where the performance improvements outweigh the associated overhead. Additionally, it’s possible that the chosen bucket boundaries align well with the distribution of values in the input, contributing to the efficiency. Algorithm timed out for 64 - 256 processes.
+
+
+#### Perturbed Input
+
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_268435456.png)
+Examining the performance for perturbed input of size 268435356 reveals a similar pattern. We observe spikes in sorting time at 64 and 256 processes, alongside a general decline in performance with an increase in the number of processes. This can be attributed to significant communication overhead associated with sample sort and inadequate sampling, leading to unrepresentative bucket boundaries. We are missing times for 64 - 512 processes because of the algorithm not scaling and timing out.
+
+
+
+#### Reversed Input
+
+![Reversed Main Times](./sample-sort/graphs/Reversed_268435456.png)
+In the performance analysis of reverse sorted input of size 268435456, we can see there is a decrease in performance as we increase the number of processors. This may be because of large communication overhead associated with sample sort which only gets larger as we increase processes. Also, since the input is sorted, the sample will be extremely lopsided meaning that one bucket will contain a good majority of the elements. Reducing the amount of parallelized work being done.
+
+
+
+#### Sorted Input
+
+![Sorted Main Times](./sample-sort/graphs/Sorted_268435456.png)
+Like the earlier graphs, the sort time for random input of size 268435456 increases as we scale up the number of processes. We observe notable spikes in performance at 64 and 256 processes. The decreased efficiency is primarily due to communication overhead and suboptimal sampling, especially given that the input is pre-sorted.
+
 
 ## Bitonic Sort
 
