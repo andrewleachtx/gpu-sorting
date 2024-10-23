@@ -172,7 +172,12 @@ int main(int argc, char *argv[]) {
     for (const int& elem : arr) {
         local_length = max(local_length, elem);
     }
-    local_length = ceil(log10(local_length));
+    local_length = ceil(log10(local_length));    
+    slice = 1;
+    global_buckets.resize(10 * n_procs);
+    memset(global_prefix, 0, 10 * sizeof(int));
+    requests.resize(n_procs * 2);
+    statuses.resize(n_procs * 2);
     CALI_MARK_END(comp_small);
     CALI_MARK_END(comp);
 
@@ -184,11 +189,6 @@ int main(int argc, char *argv[]) {
     CALI_MARK_END(comm);
 
     // Radix Sort
-    slice = 1;
-    global_buckets.resize(10 * n_procs);
-    memset(global_prefix, 0, 10 * sizeof(int));
-    requests.resize(n_procs * 2);
-    statuses.resize(n_procs * 2);
     for (i = 0; i < global_length; ++i) {
         CALI_MARK_BEGIN(comp);
         CALI_MARK_BEGIN(comp_small);

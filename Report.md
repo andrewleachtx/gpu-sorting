@@ -547,6 +547,198 @@ perform runs that invoke algorithm2 for Sorted, ReverseSorted, and Random data).
 
 Graphs:
 
+## Bitonic Sort
+
+### Graphs of Input Size $2^{16}$ (65536 elements)
+
+#### Random Input
+
+![Random Main Times](./bitonic/results/graphs/Random_main_65536.png)
+
+#### Perturbed Input
+
+![Perturbed Main Times](./bitonic/results/graphs/Perturbed_main_65536.png)
+
+#### Reversed Input
+
+![Reversed Main Times](./bitonic/results/graphs/Reversed_main_65536.png)
+
+#### Sorted Input
+
+![Sorted Main Times](./bitonic/results/graphs/Sorted_main_65536.png)
+
+#### Analysis
+
+For the graphs at the smallest input size, we can observe a linear increase in time, which becomes sharp at the 16-32 process range. What is expected of bitonic sort is a similar runtime regardless of input type, and we can see that here. However, if we look at the sorted input for 64 processes, there are some outliers that bring the max and average up.
+
+---
+
+### Graphs of Input Size $2^{18}$ (262144 elements)
+
+#### Random Input
+
+![Random Main Times](./bitonic/results/graphs/Random_main_262144.png)
+
+#### Perturbed Input
+
+![Perturbed Main Times](./bitonic/results/graphs/Perturbed_main_262144.png)
+
+#### Reversed Input
+
+![Reversed Main Times](./bitonic/results/graphs/Reversed_main_262144.png)
+
+#### Sorted Input
+
+![Sorted Main Times](./bitonic/results/graphs/Sorted_main_262144.png)
+
+#### Analysis
+
+With this doubled input size, we can see the same trends in the previous results for \(2^{16}\).
+
+---
+
+### Graphs of Input Size $2^{20}$ (1,048,576 elements)
+
+#### Random Input
+
+![Random Main Times](./bitonic/results/graphs/Random_main_1048576.png)
+
+#### Perturbed Input
+
+![Perturbed Main Times](./bitonic/results/graphs/Perturbed_main_1048576.png)
+
+#### Reversed Input
+
+![Reversed Main Times](./bitonic/results/graphs/Reversed_main_1048576.png)
+
+#### Sorted Input
+
+![Sorted Main Times](./bitonic/results/graphs/Sorted_main_1048576.png)
+
+#### Analysis
+
+Again, with this input size we can observe a very similar pattern to the two previous results; however, we can notice that the total time has begun increasing, which is perhaps due to memory allocation overhead.
+
+---
+
+### Graphs of Input Size $2^{22}$ (4,194,304 elements)
+
+#### Random Input
+
+![Random Main Times](./bitonic/results/graphs/Random_main_4194304.png)
+
+#### Perturbed Input
+
+![Perturbed Main Times](./bitonic/results/graphs/Perturbed_main_4194304.png)
+
+#### Reversed Input
+
+![Reversed Main Times](./bitonic/results/graphs/Reversed_main_4194304.png)
+
+#### Sorted Input
+
+![Sorted Main Times](./bitonic/results/graphs/Sorted_main_4194304.png)
+
+#### Analysis
+
+At the \(2^{22}\) input size, we can start to observe a notable difference—at the lower process counts there is clearly an increase in `main` time, and this decreases until 8 processes, where it then starts to pick back up and show similar results to the other graphs.
+
+This is very accentuated with the perturbed input type compared to the others. Additionally, the y-axis has scaled to 3.5 as its max, showing the total time has increased as well.
+
+---
+
+### Graphs of Input Size $2^{24}$ (16,777,216 elements)
+
+#### Random Input
+
+![Random Main Times](./bitonic/results/graphs/Random_main_16777216.png)
+
+#### Perturbed Input
+
+![Perturbed Main Times](./bitonic/results/graphs/Perturbed_main_16777216.png)
+
+#### Reversed Input
+
+![Reversed Main Times](./bitonic/results/graphs/Reversed_main_16777216.png)
+
+#### Sorted Input
+
+![Sorted Main Times](./bitonic/results/graphs/Sorted_main_16777216.png)
+
+#### Analysis
+
+At \(2^{24}\), we can see some significant changes from our other plots, which is a very sharp program time at 2 processes, which sees a descent to 16 processes. Following this, the pattern was very similar to other charts, but the extent of that pattern does not come close to the original maximum values at higher processes.
+
+It is becoming clear just how difficult it is for the lower process counts to manage these input sizes. Also, we should acknowledge that the random and perturbed data are comparatively much more compressed or scaled because the initial process time is far greater than other types, especially so for the perturbed data.
+
+This is perhaps because of cache misses that are very detrimental for such a series-oriented process size—that is, the number of times we have to swap values that are so vastly different results in greater cache thrashing and changes.
+
+---
+
+### Graphs of Input Size $2^{26}$ (67,108,864 elements)
+
+#### Random Input
+
+![Random Main Times](./bitonic/results/graphs/Random_main_67108864.png)
+
+#### Perturbed Input
+
+![Perturbed Main Times](./bitonic/results/graphs/Perturbed_main_67108864.png)
+
+#### Reversed Input
+
+![Reversed Main Times](./bitonic/results/graphs/Reversed_main_67108864.png)
+
+#### Sorted Input
+
+![Sorted Main Times](./bitonic/results/graphs/Sorted_main_67108864.png)
+
+#### Analysis
+
+At this input size, we can observe the same patterns as in \(2^{24}\) in that the start is very high, and it slopes downward—except now we are sloping downward all the way up to 64 processes, and don't increase too much from there.
+
+Our minimum is at 512 processes for the perturbed and random input, and 64 for the reversed and sorted. We can see a clear difference between these two groups now, where sorted and reverse perform similarly, but 10-15 seconds faster than the perturbed and random input.
+
+The intuition behind this is that the sorted and reversed input are already in an ordered and symmetrical state, which means our data is quickly put into a **bitonic sequence**. Perturbed and random data, however, are not in this state, and require more work to get there.
+
+---
+
+### Graphs of Input Size $2^{28}$ (268,435,456 elements)
+
+#### Random Input
+
+![Random Main Times](./bitonic/results/graphs/Random_main_268435456.png)
+
+#### Perturbed Input
+
+![Perturbed Main Times](./bitonic/results/graphs/Perturbed_main_268435456.png)
+
+#### Reversed Input
+
+![Reversed Main Times](./bitonic/results/graphs/Reversed_main_268435456.png)
+
+#### Sorted Input
+
+![Sorted Main Times](./bitonic/results/graphs/Sorted_main_268435456.png)
+
+#### Analysis
+
+This final input size is where things really escalate. We can observe the same patterns as before, with 100-120 seconds for random and perturbed inputs, respectively, and that sees an exponential decay-like decrease to 64 processors, where it increases slightly but then falls to the global minimum at 512 and 1024 processes.
+
+Reverse and sorted data are very visually similar, which makes sense—however, we can see it is almost 2x faster in total time than the other data.
+
+---
+
+### Summary
+
+All in all, it is clear that as we increase our processes with increasing data size, there is generally an increase in benefit from higher process counts. That said, at lower amounts of work, the overhead of using increased processes outweighs the potential benefits of parallelism.
+
+It is also very clear that the type of input has a significant impact on performance—although maybe not as much as in other sorting algorithms due to the nature of bitonic sort being based on a sorting network.
+
+More specifically, up until data became very massive (\(2^{24}\)) all input types performed relatively similarly—however, as this data size continued to grow exponentially, we saw the effects of inconsistent data in perturbed and random versus more "ordered" sorted and reverse sorted data.
+
+---
+
 - Merge Sort
 
     - Random Main Times
@@ -612,6 +804,15 @@ Graphs:
     ![image info](./merge/graphs/mainPerturbed67108864.png)
 
     ![image info](./merge/graphs/mainPerturbed268435456.png)
+
+    - Analysis
+
+        - As far as the the communication time went, there was not too much of a difference between input types. They tended to follow a similar trend, especially at higher input sizes. In most cases, the communication times increased alongside the input size. There tended to be an increase in communication time alongside processor count as well. Interestingly, the time would frequently spike at 128 processors.
+
+        - As would be expected, computation time became higher in accordance with the input size. As the number of processors increased, the computation time would decrease at a roughly logarithmic rate. All 4 input types displayed similar trends for computation time.
+
+        - For the overall program, once again, the overall time would become higher when the input size increased. The effectiveness of parallelization would also differ depending on input size. At lower sizes such as 65536, higher processor counts would lead to increased program time. This was likely a result of the increase in communication time compared to a minimal benefit to computation time at these input sizes. At size 65536, the optimal processor count tended to be around 64. After 64 processors the time would begin to sharply balloon. As the input size increased, the degree to which the time would go up past 64 processors gradually shrunk. Starting with input size 4194304 the line extending from 64 processors started to become flat with little change in higher processor counts. This leads me to believe that the optimal processor count for parallel merge sort is 64, since it provides fast speeds similar to higher processor counts without using up as many resources. As far as the input types went, there was once again little observable differences.
+
 
 - Radix Sort
     - Sorted Graphs
