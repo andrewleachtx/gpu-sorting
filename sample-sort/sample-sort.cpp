@@ -49,16 +49,36 @@ int main(int argc, char** argv) {
 
   int num_workers = n_procs - 1;
   int input_size = atoi(argv[1]);
-  int oversampling_factor = atoi(argv[2]);
+  char* input_type = argv[2];
+  int oversampling_factor = 8;
   vector<int> result;
 
+  CALI_MARK_BEGIN("main");
   //send bucket boundaries to worker processes
   if(rank == MASTER) {
     //create input
     CALI_MARK_BEGIN(data_init_runtime);
     vector<int> input;
-    for(int i = 0; i < input_size; i++) {
-      input.push_back(rand() % 100);
+    if(strcmp(input_type, "Random") == 0) {
+      for(int i = 0; i < input_size; i++) {
+        input.push_back(rand() % 100);
+      }
+    } else if(strcmp(input_type, "Sorted") == 0) {
+      for(int i = 0; i < input_size; i++) {
+        input.push_back(i);
+      }
+    } else if(strcmp(input_type, "ReverseSorted") == 0) {
+      for(int i = input_size - 1; i >= 0; i--) {
+        input.push_back(i);
+      }
+    } else if(strcmp(input_type, "1_perc_perturbed") == 0){
+      for(int i = 0; i < input_size; i++) {
+        if(((float) i) / input_size <= .01) {
+          input.push_back(rand() % 100);
+        } else {
+          input.push_back(i);
+        }
+      }
     }
 
     //sample p*k values
@@ -225,6 +245,8 @@ int main(int argc, char** argv) {
     CALI_MARK_END(comm_large);
     CALI_MARK_END(comm);
   }
+  CALI_MARK_END("main");
+
   if(rank == MASTER) {
     adiak::init(NULL);
     adiak::launchdate();
