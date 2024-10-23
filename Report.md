@@ -563,7 +563,7 @@ Looking at the performance of perturbed input of size 65536, we can see a steady
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_65536.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_65536.png)
 In the performance analysis of reverse sorted input of size 65536, we can see that as the number of processors increase, our performance continues to decrease as we take more time. This may be due to the cost of extensively communicating between workers in sample sort. And since our input is small, the overhead is large and outweighs the benefits.
 
 #### Sorted Input
@@ -589,7 +589,7 @@ For a perturbed input size of 262144, the sorting time steadily increases as the
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_262144.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_262144.png)
 In the performance analysis of reverse sorted input of size 262144, we can see that as the number of processors increase, our performance continues to decrease as we take more time. This may be due to the cost of extensively communicating between workers in sample sort. And since our input is small, the overhead is large and outweighs the benefits.
 
 
@@ -617,7 +617,7 @@ Similar to earlier graphs, the sort time for perturbed input of size 1048576 inc
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_1048576.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_1048576.png)
 As we can see, for reverse sorted inputs of size 1048576, as we increase the number of processors, our performance goes down. This is because the large overhead sample sort has since workers have to communicate between all other workers to receive corresponding bucket data.
 
 #### Sorted Input
@@ -646,7 +646,7 @@ As with the earlier graphs, the sort time for perturbed input of size 4194304 gr
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_4194304.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_4194304.png)
 For reverse sorted inputs of size 4193404, we see a similar trend where the performance goes down as we increase processors. This is expected because sample sort uses a lot of communication to redirect data to corresponding workers.
 
 #### Sorted Input
@@ -672,7 +672,7 @@ Similarly, with perturbed inputs of size 16777216, we see a decline in performan
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_16777216.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_16777216.png)
 In the performance analysis of reverse sorted input of size 16777216, we can see there is a decrease in performance as we increase the number of processors. This may be because of large communication overhead associated with sample sort which only gets larger as we increase processes. Also, since the input is sorted, the sample will be extremely lopsided meaning that one bucket will contain a good majority of the elements. Reducing the amount of parallelized work being done.
 
 #### Sorted Input
@@ -698,7 +698,7 @@ Looking at the performance for perturbed input of size 67108864, we can see a si
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_67108864.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_67108864.png)
 In the performance analysis of reverse sorted input of size 67108864, we can see there is a decrease in performance as we increase the number of processors. This may be because of large communication overhead associated with sample sort which only gets larger as we increase processes. Also, since the input is sorted, the sample will be extremely lopsided meaning that one bucket will contain a good majority of the elements. Reducing the amount of parallelized work being done.
 
 
@@ -726,7 +726,7 @@ Examining the performance for perturbed input of size 268435356 reveals a simila
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_268435456.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_268435456.png)
 In the performance analysis of reverse sorted input of size 268435456, we can see there is a decrease in performance as we increase the number of processors. This may be because of large communication overhead associated with sample sort which only gets larger as we increase processes. Also, since the input is sorted, the sample will be extremely lopsided meaning that one bucket will contain a good majority of the elements. Reducing the amount of parallelized work being done.
 
 
