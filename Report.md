@@ -613,6 +613,15 @@ Graphs:
 
     ![image info](./merge/graphs/mainPerturbed268435456.png)
 
+    - Analysis
+
+        - As far as the the communication time went, there was not too much of a difference between input types. They tended to follow a similar trend, especially at higher input sizes. In most cases the communication times increased alongside the input size. There tended to be an increase in communication time alongside processor count as well. Interestingly, frequently spiked at 128 processors.
+
+        - As would be expected, computation time became higher in accordance with the input size. As the number of processors increased, the computation time would decrease at a roughly logarithmic rate. All 4 input types displayed similar trends for computation time.
+
+        - For the overall program, once again the overall time would become higher when the input size increased. The effectiveness of parallelization would also differ depending on input size. At lower sizes such as 65536, higher processor counts would lead to increased program time. This was likely a result of the increase in communication time compared to a minimal benefit to computation time at these input sizes. At size 65536, the optimal processor count tended to be around 64. After 64 processors the time would begin to sharply balloon. As the input size increased, the degree to which the time would balloon past 64 processors gradually shrunk. Starting with input size 4194304 the line extending from 64 processors started to become flat with little change in higher processor counts. This leads me to believe that the optimal processor count for parallel merge sort is 64, since it provides similar speeds to higher processor counts without using up as many resources. As far as the input types went, there was once again little observable differences.
+
+
 ## 5. Presentation
 Plots for the presentation should be as follows:
 - For each implementation:
