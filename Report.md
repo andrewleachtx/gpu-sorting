@@ -549,7 +549,7 @@ Graphs:
 
 ## Bitonic Sort
 
-### Graphs of Input Size \(2^{16}\) (65536 elements)
+### Graphs of Input Size $2^{16}$ (65536 elements)
 
 #### Random Input
 
@@ -573,7 +573,7 @@ For the graphs at the smallest input size, we can observe a linear increase in t
 
 ---
 
-### Graphs of Input Size \(2^{18}\) (262144 elements)
+### Graphs of Input Size $2^{18}$ (262144 elements)
 
 #### Random Input
 
@@ -597,7 +597,7 @@ With this doubled input size, we can see the same trends in the previous results
 
 ---
 
-### Graphs of Input Size \(2^{20}\) (1,048,576 elements)
+### Graphs of Input Size $2^{20}$ (1,048,576 elements)
 
 #### Random Input
 
@@ -621,7 +621,7 @@ Again, with this input size we can observe a very similar pattern to the two pre
 
 ---
 
-### Graphs of Input Size \(2^{22}\) (4,194,304 elements)
+### Graphs of Input Size $2^{22}$ (4,194,304 elements)
 
 #### Random Input
 
@@ -647,7 +647,7 @@ This is very accentuated with the perturbed input type compared to the others. A
 
 ---
 
-### Graphs of Input Size \(2^{24}\) (16,777,216 elements)
+### Graphs of Input Size $2^{24}$ (16,777,216 elements)
 
 #### Random Input
 
@@ -675,7 +675,7 @@ This is perhaps because of cache misses that are very detrimental for such a ser
 
 ---
 
-### Graphs of Input Size \(2^{26}\) (67,108,864 elements)
+### Graphs of Input Size $2^{26}$ (67,108,864 elements)
 
 #### Random Input
 
@@ -703,7 +703,7 @@ The intuition behind this is that the sorted and reversed input are already in a
 
 ---
 
-### Graphs of Input Size \(2^{28}\) (268,435,456 elements)
+### Graphs of Input Size $2^{28}$ (268,435,456 elements)
 
 #### Random Input
 
