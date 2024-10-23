@@ -563,7 +563,7 @@ Looking at the performance of perturbed input of size 65536, we can see a steady
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reversed_65536.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_65536.png)
 In the performance analysis of reverse sorted input of size 65536, we can see that as the number of processors increase, our performance continues to decrease as we take more time. This may be due to the cost of extensively communicating between workers in sample sort. And since our input is small, the overhead is large and outweighs the benefits.
 
 #### Sorted Input
