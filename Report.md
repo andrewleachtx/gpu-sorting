@@ -646,7 +646,7 @@ As with the earlier graphs, the sort time for perturbed input of size 4194304 gr
 
 #### Reversed Input
 
-![Reversed Main Times](./sample-sort/graphs/Reverse_4194304.png)
+![Reversed Main Times](./sample-sort/graphs/Reverse_4193404.png)
 For reverse sorted inputs of size 4193404, we see a similar trend where the performance goes down as we increase processors. This is expected because sample sort uses a lot of communication to redirect data to corresponding workers.
 
 #### Sorted Input
