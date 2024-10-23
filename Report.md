@@ -613,6 +613,133 @@ Graphs:
 
     ![image info](./merge/graphs/mainPerturbed268435456.png)
 
+- Radix Sort
+    - Sorted Graphs
+        - Main Time
+        \
+        ![image info](./radix/graphs/Sorted_Main_Time_for_65536.png) 
+        ![image info](./radix/graphs/Sorted_Main_Time_for_262144.png) 
+        ![image info](./radix/graphs/Sorted_Main_Time_for_1048576.png) 
+        ![image info](./radix/graphs/Sorted_Main_Time_for_4194304.png) 
+        ![image info](./radix/graphs/Sorted_Main_Time_for_16777216.png) 
+        ![image info](./radix/graphs/Sorted_Main_Time_for_67108864.png) 
+        ![image info](./radix/graphs/Sorted_Main_Time_for_268435456.png) 
+        - Computation Time
+        \
+        ![image info](./radix/graphs/Sorted_Computation_Time_for_65536.png)
+        ![image info](./radix/graphs/Sorted_Computation_Time_for_262144.png)
+        ![image info](./radix/graphs/Sorted_Computation_Time_for_1048576.png)
+        ![image info](./radix/graphs/Sorted_Computation_Time_for_4194304.png)
+        ![image info](./radix/graphs/Sorted_Computation_Time_for_16777216.png)
+        ![image info](./radix/graphs/Sorted_Computation_Time_for_67108864.png)
+        ![image info](./radix/graphs/Sorted_Computation_Time_for_268435456.png)
+        - Communication Time
+        \
+        ![image info](./radix/graphs/Sorted_Communication_Time_for_65536.png)
+        ![image info](./radix/graphs/Sorted_Communication_Time_for_262144.png)
+        ![image info](./radix/graphs/Sorted_Communication_Time_for_1048576.png)
+        ![image info](./radix/graphs/Sorted_Communication_Time_for_4194304.png)
+        ![image info](./radix/graphs/Sorted_Communication_Time_for_16777216.png)
+        ![image info](./radix/graphs/Sorted_Communication_Time_for_67108864.png)
+        ![image info](./radix/graphs/Sorted_Communication_Time_for_268435456.png)
+    - Random Graphs
+        - Main Time
+        \
+        ![image info](./radix/graphs/Random_Main_Time_for_65536.png)
+        ![image info](./radix/graphs/Random_Main_Time_for_262144.png)
+        ![image info](./radix/graphs/Random_Main_Time_for_1048576.png)
+        ![image info](./radix/graphs/Random_Main_Time_for_4194304.png)
+        ![image info](./radix/graphs/Random_Main_Time_for_16777216.png)
+        ![image info](./radix/graphs/Random_Main_Time_for_67108864.png)
+        ![image info](./radix/graphs/Random_Main_Time_for_268435456.png)
+        - Computation Time
+        \
+        ![image info](./radix/graphs/Random_Computation_Time_for_65536.png)
+        ![image info](./radix/graphs/Random_Computation_Time_for_262144.png)
+        ![image info](./radix/graphs/Random_Computation_Time_for_1048576.png)
+        ![image info](./radix/graphs/Random_Computation_Time_for_4194304.png)
+        ![image info](./radix/graphs/Random_Computation_Time_for_16777216.png)
+        ![image info](./radix/graphs/Random_Computation_Time_for_67108864.png)
+        ![image info](./radix/graphs/Random_Computation_Time_for_268435456.png)
+        - Communication Time
+        \
+        ![image info](./radix/graphs/Random_Communication_Time_for_65536.png)
+        ![image info](./radix/graphs/Random_Communication_Time_for_262144.png)
+        ![image info](./radix/graphs/Random_Communication_Time_for_1048576.png)
+        ![image info](./radix/graphs/Random_Communication_Time_for_4194304.png)
+        ![image info](./radix/graphs/Random_Communication_Time_for_16777216.png)
+        ![image info](./radix/graphs/Random_Communication_Time_for_67108864.png)
+        ![image info](./radix/graphs/Random_Communication_Time_for_268435456.png)
+    - Reversed Graphs
+        - Main Time
+        \
+        ![image info](./radix/graphs/Reversed_Main_Time_for_65536.png)
+        ![image info](./radix/graphs/Reversed_Main_Time_for_262144.png)
+        ![image info](./radix/graphs/Reversed_Main_Time_for_1048576.png)
+        ![image info](./radix/graphs/Reversed_Main_Time_for_4194304.png)
+        ![image info](./radix/graphs/Reversed_Main_Time_for_16777216.png)
+        ![image info](./radix/graphs/Reversed_Main_Time_for_67108864.png)
+        ![image info](./radix/graphs/Reversed_Main_Time_for_268435456.png)
+        - Computation Time
+        \
+        ![image info](./radix/graphs/Reversed_Computation_Time_for_65536.png)
+        ![image info](./radix/graphs/Reversed_Computation_Time_for_262144.png)
+        ![image info](./radix/graphs/Reversed_Computation_Time_for_1048576.png)
+        ![image info](./radix/graphs/Reversed_Computation_Time_for_4194304.png)
+        ![image info](./radix/graphs/Reversed_Computation_Time_for_16777216.png)
+        ![image info](./radix/graphs/Reversed_Computation_Time_for_67108864.png)
+        ![image info](./radix/graphs/Reversed_Computation_Time_for_268435456.png)
+        - Communication Time
+        \     
+        ![image info](./radix/graphs/Reversed_Communication_Time_for_65536.png)
+        ![image info](./radix/graphs/Reversed_Communication_Time_for_262144.png)
+        ![image info](./radix/graphs/Reversed_Communication_Time_for_1048576.png)
+        ![image info](./radix/graphs/Reversed_Communication_Time_for_4194304.png)
+        ![image info](./radix/graphs/Reversed_Communication_Time_for_16777216.png)
+        ![image info](./radix/graphs/Reversed_Communication_Time_for_67108864.png)
+        ![image info](./radix/graphs/Reversed_Communication_Time_for_268435456.png)
+    - Perturbed Graphs
+        - Main Time
+        \
+        ![image info](./radix/graphs/Perturbed_Main_Time_for_65536.png)
+        ![image info](./radix/graphs/Perturbed_Main_Time_for_262144.png)
+        ![image info](./radix/graphs/Perturbed_Main_Time_for_1048576.png)
+        ![image info](./radix/graphs/Perturbed_Main_Time_for_4194304.png)
+        ![image info](./radix/graphs/Perturbed_Main_Time_for_16777216.png)
+        ![image info](./radix/graphs/Perturbed_Main_Time_for_67108864.png)
+        ![image info](./radix/graphs/Perturbed_Main_Time_for_268435456.png)
+        - Computation Time
+        \
+        ![image info](./radix/graphs/Perturbed_Computation_Time_for_65536.png)
+        ![image info](./radix/graphs/Perturbed_Computation_Time_for_262144.png)
+        ![image info](./radix/graphs/Perturbed_Computation_Time_for_1048576.png)
+        ![image info](./radix/graphs/Perturbed_Computation_Time_for_4194304.png)
+        ![image info](./radix/graphs/Perturbed_Computation_Time_for_16777216.png)
+        ![image info](./radix/graphs/Perturbed_Computation_Time_for_67108864.png)
+        ![image info](./radix/graphs/Perturbed_Computation_Time_for_268435456.png)
+        - Communication Time
+        \
+        ![image info](./radix/graphs/Perturbed_Communication_Time_for_65536.png)
+        ![image info](./radix/graphs/Perturbed_Communication_Time_for_262144.png)
+        ![image info](./radix/graphs/Perturbed_Communication_Time_for_1048576.png)
+        ![image info](./radix/graphs/Perturbed_Communication_Time_for_4194304.png)
+        ![image info](./radix/graphs/Perturbed_Communication_Time_for_16777216.png)
+        ![image info](./radix/graphs/Perturbed_Communication_Time_for_67108864.png)
+        ![image info](./radix/graphs/Perturbed_Communication_Time_for_268435456.png)
+
+    
+    Across all the sorts, for low number of elements, we see that the runtime actually increases with the number of processes. In fact, until 1048576 elements, we don't see any absolute reduction in runtime by increasing processes. For 1048576 and 4194304, we see an improvement only for the first few number of processes, but for higher number of processes (especially for cases including multiple nodes) the overhead dominates the runtime. However, for the datasets larger than 4194304 we see scaling that more closely resembles exponential decrease. Regarding the overhead, looking at the communication graphs, while we do generally see a fairly large percent increase (at least for the relevant smaller input sizes), the absolute increase does not account for the total change in Main runtime. Therefore, since the computation universally shows exponential decrease as the number of processes increases, the overhead is likely due to inherent costs with mpi, calipher, and parallelization in general. Specifically in regards to caliper, the implementation's focus on granularity results in many sections being entered and exited many different times which likely causes additional overhead. For the largest input sizes, the magnitude of the speedup between processes is significant enough to dominate these overhead costs, and we observe the desired scaling. 
+
+    Interestingly, for the larger sizes, the communication runtimes actually decrease with a greater number of processes. This is mostly due to the high costs of communication for fewer processes. As the number of processes increase, the number of elements being sent is better distributed, meaning the size of the packets is more reasonable and processes finish sending and can receive more quickly. While these factors affect smaller input sizes as well, since the original costs of communication are so low, increasing the number of nodes is more detrimental than improving the distribution is beneficial.
+
+    As mentioned before the computation graphs demonstrate weak scaling. For the higher input sizes, the computation costs dominate the total runtime, and we observe weak scaling overall. Moreover, as expected, increasing the number of processes is more beneficial for larger input sizes in general since the magnitude of the absolute improvement is greater. For the smaller input sizes, dividing the computation time in half does not necessarily result in signficant speedup, but for larger input sizes, there is a greater opportunity to cut the computation in half and greatly reduce the runtime.
+
+    We do not see significant differences in runtime for the different types of inputs. This is because the majority of the costs do not depend on how sorted the elements currently are. Within computation, counting sort comprises the majority of the calculation which goes digit by digit, resulting in the frequent dispersal of elements that differ in a digit place but are actually sequential overall. As a result, communication costs are also relatively unaffected by the differing types of inputs since the movement of elements is dependent on counting sort. 
+
+    Note: I was unable to gather data for 1024 processes because of an error relating to hydra.
+    
+
+
 ## 5. Presentation
 Plots for the presentation should be as follows:
 - For each implementation:
