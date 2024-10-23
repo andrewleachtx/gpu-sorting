@@ -719,7 +719,7 @@ For a random input size of 268435456, there is a noticeable decrease in sorting 
 
 #### Perturbed Input
 
-![Perturbed Main Times](./sample-sort/graphs/Perturbed_268435456.png)
+![Perturbed Main Times](./sample-sort/graphs/Perturbed_268435356.png)
 Examining the performance for perturbed input of size 268435356 reveals a similar pattern. We observe spikes in sorting time at 64 and 256 processes, alongside a general decline in performance with an increase in the number of processes. This can be attributed to significant communication overhead associated with sample sort and inadequate sampling, leading to unrepresentative bucket boundaries. We are missing times for 64 - 512 processes because of the algorithm not scaling and timing out.
 
 
