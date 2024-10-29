@@ -1157,6 +1157,10 @@ Analyze these plots and choose a subset to present and explain in your presentat
 ![Reverse Speedup for 268435456](pres_graphs/Reverse_Speedup_for_268435456.png)
 ![Sorted Speedup for 268435456](pres_graphs/Sorted_Speedup_for_268435456.png)
 
+Although the trends look unaffected between the different input types, some of the algorithms achieve differing runtimes for each input type. For sample sort, sorted and reverse sorted inputs are inefficient due to poor sampling values which are not representative of the range of the input. For bitonic sort, random and perturbed are significantly slower than sorted and reverse sorted because the ordered inputs resemble bitonic sequences which saves significant computation in comparison. Finally for merge and radix, the runtimes are not affected by the chosen input types. 
+
+Regarding the input size, for the smaller size (2^16 elements) there is not a significant variation in performance between the different algorithms. The same pattern is seen in regards to speedup, although merge sort benefits slightly more from parallelization at smaller sizes. At 2^28 elements the differences between the different algorithms becomes more apparent. We see that although radix sort has overhead that hinders its performance for midrange sizes, it maintains its speedup trendline across a greater number of processes, allowing for a comparatively faster runtime at the highest number of cores. In general at greater sizes, the algorithms see greater speedup than at the smaller sizes.
+
 ## 6. Final Report
 Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
 - Algorithms: Directory of source code of your algorithms.
