@@ -1128,8 +1128,6 @@ More specifically, up until data became very massive (\(2^{24}\)) all input type
     We do not see significant differences in runtime for the different types of inputs. This is because the majority of the costs do not depend on how sorted the elements currently are. Within computation, counting sort comprises the majority of the calculation which goes digit by digit, resulting in the frequent dispersal of elements that differ in a digit place but are actually sequential overall. As a result, communication costs are also relatively unaffected by the differing types of inputs since the movement of elements is dependent on counting sort. 
 
     Note: I was unable to gather data for 1024 processes because of an error relating to hydra.
-    
-
 
 ## 5. Presentation
 Plots for the presentation should be as follows:
@@ -1140,6 +1138,24 @@ Plots for the presentation should be as follows:
         - Weak scaling plots for each input_type (4 plots)
 
 Analyze these plots and choose a subset to present and explain in your presentation.
+
+## Graphs
+
+![Random Main for 65536](pres_graphs/Random_Main_for_65536.png)
+![Reverse Main for 65536](pres_graphs/Reverse_Main_for_65536.png)
+![Sorted Main for 65536](pres_graphs/Sorted_Main_for_65536.png)
+
+![Random Speedup for 65536](pres_graphs/Random_Speedup_for_65536.png)
+![Reverse Speedup for 65536](pres_graphs/Reverse_Speedup_for_65536.png)
+![Sorted Speedup for 65536](pres_graphs/Sorted_Speedup_for_65536.png)
+
+![Random Main for 268435456](pres_graphs/Random_Main_for_268435456.png)
+![Reverse Main for 268435456](pres_graphs/Reverse_Main_for_268435456.png)
+![Sorted Main for 268435456](pres_graphs/Sorted_Main_for_268435456.png)
+
+![Random Speedup for 268435456](pres_graphs/Random_Speedup_for_268435456.png)
+![Reverse Speedup for 268435456](pres_graphs/Reverse_Speedup_for_268435456.png)
+![Sorted Speedup for 268435456](pres_graphs/Sorted_Speedup_for_268435456.png)
 
 ## 6. Final Report
 Submit a zip named `TeamX.zip` where `X` is your team number. The zip should contain the following files:
